@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using KlippCoApp.Data;
+using KlippCoApp.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,7 +11,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlite(connectionString));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = false)
+builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = false)
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>();
 builder.Services.AddControllersWithViews();
@@ -60,18 +61,26 @@ using (var scope = app.Services.CreateScope())
     }
 
     // Skapa användare
-    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
 
-    var users = new [] {
-        new {Email = "admin@klippco.se", Password = "Password123!", Role = "Admin"},
-        new {Email = "sofia@klippco.se", Password = "Password123!", Role = "Stylist"},
-        new {Email = "user@klippco.se", Password = "Password123!", Role = "Customer"}
+    var users = new[] {
+        new {Email = "admin@klippco.se", Password = "Password123!", Role = "Admin", Firstname = "Kajsa", Lastname = "Classon"},
+        new {Email = "sofia@klippco.se", Password = "Password123!", Role = "Stylist", Firstname = "Sofia", Lastname = "Larsson"},
+        new {Email = "user@klippco.se", Password = "Password123!", Role = "Customer", Firstname = "Emil", Lastname = "Sundström"}
     };
 
-    foreach(var user in users){
+    foreach (var user in users)
+    {
         var identityUser = await userManager.FindByEmailAsync(user.Email);
-        if(identityUser == null){
-            identityUser = new IdentityUser {UserName = user.Email, Email=user.Email};
+        if (identityUser == null)
+        {
+            identityUser = new ApplicationUser
+            {
+                UserName = user.Email,
+                Email = user.Email,
+                Firstname = user.Firstname,
+                Lastname = user.Lastname
+            };
             await userManager.CreateAsync(identityUser, user.Password);
 
             // Tilldela roll
