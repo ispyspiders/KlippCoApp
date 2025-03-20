@@ -1,3 +1,19 @@
+:root {
+  --bs-primary: #EB6817;
+  --bs-secondary-color: #395954;
+}
+
+.btn-primary {
+  background-color: var(--bs-primary);
+  border: var(--bs-primary);
+}
+
+.btn-primary:hover {
+  background-color: var(--bs-primary);
+  opacity: 80%;
+}
+
+
 html {
   font-size: 14px;
 }
@@ -9,7 +25,7 @@ html {
 }
 
 .btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #EB6817;
 }
 
 html {
@@ -18,7 +34,8 @@ html {
 }
 
 body {
-  margin-bottom: 60px;
+  margin-bottom: 250px;
+  background-color: #395954;
 }
 
 .form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
@@ -28,4 +45,29 @@ body {
 
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
   text-align: start;
+}
+
+h1.logo {
+  font-family: "Cinzel", 'Times New Roman', Times, serif!important;
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: #fff;
+}
+
+.banner{
+  background-image: url(../images/hair_bg.jpg);
+  width: 100%;
+  margin: 0;
+  height: 400px;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+a {
+  color: var(--bs-secondary-color);
+}
+
+a:hover {
+  opacity: 80%;
 }
