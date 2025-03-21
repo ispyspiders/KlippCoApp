@@ -1,47 +1,93 @@
 @model IEnumerable<KlippCoApp.Models.Service>
 
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<ApplicationUser> UserManager
+@inject SignInManager<ApplicationUser> SignInManager
+
 @{
-    ViewData["Title"] = "Index";
+    var user = SignInManager.IsSignedIn(User) ? await UserManager.GetUserAsync(User) : null;
+    var roles = user != null ? await UserManager.GetRolesAsync(user) : null;
+    var isAdminOrStylist = roles != null && (roles.Contains("Admin") || roles.Contains("Stylist"));
+
+    // Set layout and body class for admin/stylist
+    if (isAdminOrStylist)
+    {
+        Layout = "_AdminLayout";
+        ViewData["BodyClass"] = "admin-page";
+    }
 }
 
-<h1>Index</h1>
-
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Name)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Description)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Price)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Name)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Description)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Price)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
+@{
+    ViewData["Title"] = "Tjänster";
 }
-    </tbody>
-</table>
+
+
+@* Om admin eller stylist visa endast titel *@
+@if (isAdminOrStylist)
+{
+    <div class="container">
+        <h1>@ViewData["Title"]</h1>
+    </div>
+}
+@* Annars visa titel med bakgrundsbild *@
+else
+{
+    <div class="banner d-flex justify-content-center align-items-center">
+        <div class="container">
+            <img src="~/images/Klipp&Co.svg" alt="Logo" class="img-fluid">
+            <h1 class="h1 mt-4 text-light">@ViewData["Title"]</h1>
+        </div>
+    </div>
+}
+
+<div class="container pt-5">
+    @if (isAdminOrStylist)
+    {
+        <div class="d-flex justify-content-between align-items-end">
+            <!-- Toggle button for admin/stylist -->
+            <a asp-action="Create" class="mb-2">Lägg till tjänst</a>
+            <button id="toggle-view-btn" class="btn btn-primary mb-2">Visa som Lista</button>
+        </div>
+    }
+
+    <!-- Service Cards View -->
+    <partial name="_ServiceCard" />
+
+    <!-- Service Table View -->
+    <div id="service-table" style="display: none;">
+        @await Html.PartialAsync("_ServiceTable", Model)
+    </div>
+</div>
+
+@* Toggla lista/kort *@
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        var toggleButton = document.getElementById("toggle-view-btn");
+        var cardView = document.getElementById("service-cards");
+        var tableView = document.getElementById("service-table");
+
+        if (toggleButton) {
+            toggleButton.addEventListener("click", function () {
+                // Om korten inte är synliga, visa dem och göm tabellen
+                if (cardView.style.display === "none") {
+                    cardView.style.display = "flex";  // Visa kort
+                    tableView.style.display = "none";  // Dölj tabell
+                    toggleButton.textContent = "Visa som Lista";  // Växla knapptext
+
+                    // Återställ Bootstrap Grid-kolumner när vi visar korten
+                    cardView.classList.add('row'); // Säkerställ att "row"-klassen är tillagd
+                    var columns = cardView.querySelectorAll('.col-md-4');
+                    columns.forEach(function (column) {
+                        column.style.display = 'block';  // Visa alla kolumner
+                    });
+
+                } else {
+                    // Om korten är synliga, göm dem och visa tabellen
+                    cardView.style.display = "none";  // Dölj kort
+                    tableView.style.display = "block";  // Visa tabell
+                    toggleButton.textContent = "Visa som Kort";  // Växla knapptext
+                }
+            });
+        }
+    });
+</script>

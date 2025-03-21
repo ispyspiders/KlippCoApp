@@ -16,4 +16,8 @@ public class Service
     [Required]
     [Display(Name = "Pris")]
     public int Price { get; set; } = 0; // Noll som standard
+
+    [Required]
+    [Display(Name = "Tidsåtgång (minuter)")]
+    public int Duration { get; set; } 
 }

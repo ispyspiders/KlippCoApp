@@ -44,6 +44,10 @@ body {
   background-color: #395954;
 }
 
+body.admin-page {
+  background-color: #f8f9fa;
+}
+
 .form-floating>.form-control-plaintext::placeholder,
 .form-floating>.form-control::placeholder {
   color: var(--bs-secondary-color);
@@ -80,7 +84,6 @@ a:hover {
   opacity: 80%;
 }
 
-
 .img-bg {
   position: fixed;
   top: 0;
@@ -111,4 +114,9 @@ a:hover {
   color: white;
   text-align: center;
   z-index: 2;
+}
+
+#service-cards .col-md-4 {
+  display: block;
+  margin-bottom: 20px;
 }

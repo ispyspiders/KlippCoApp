@@ -1,0 +1,18 @@
+.card-text.description-truncate {
+    /* Begränsar texten till en viss höjd och lägger till ellipsis */
+    display: -webkit-box;
+    /* -webkit-line-clamp: 2; /* Trunkera efter 2 rader*/
+    /* line-clamp: 2; */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Gör korten lika stora */
+.card {
+    height: 100%; /* Ser till att alla kort är lika stora */
+}
+
+.card-body {
+    flex-grow: 1; /* Ser till att innehållet växer för att fylla kortet */
+}

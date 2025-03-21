@@ -1,0 +1,36 @@
+@model IEnumerable<KlippCoApp.Models.Service>
+
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<ApplicationUser> UserManager
+@inject SignInManager<ApplicationUser> SignInManager
+
+@{
+    var user = SignInManager.IsSignedIn(User) ? await UserManager.GetUserAsync(User) : null;
+    var roles = user != null ? await UserManager.GetRolesAsync(user) : null;
+    var isAdminOrStylist = roles != null && (roles.Contains("Admin") || roles.Contains("Stylist"));
+}
+
+<div id="service-cards" class="row">
+    @foreach (var service in Model)
+    {
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 d-flex flex-column">
+                <div class="card-header">
+                    <h5 class="card-title m-0">@service.Name</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text description-truncate">@service.Description</p>
+                    <p><strong>Tidsåtgång:</strong> @service.Duration minuter</p>
+                    <p><strong>Pris:</strong> @service.Price kr</p>
+                </div>
+                @if (isAdminOrStylist)
+                {
+                    <div class="card-footer">
+                        <a asp-action="Edit" asp-route-id="@service.Id" class="card-link">Redigera</a>
+                        <a asp-action="Delete" asp-route-id="@service.Id" class="card-link text-danger">Radera</a>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>
