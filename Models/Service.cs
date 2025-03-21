@@ -15,5 +15,5 @@ public class Service
 
     [Required]
     [Display(Name = "Pris")]
-    public int price { get; set; } = 0; // Noll som standard
+    public int Price { get; set; } = 0; // Noll som standard
 }
