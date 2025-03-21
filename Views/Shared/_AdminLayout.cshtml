@@ -36,6 +36,10 @@
                             <a class="nav-link text-light" asp-area="" asp-controller="Home"
                                 asp-action="Index">Start</a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-light" asp-area="" asp-controller="Service" asp-action="Index">Våra
+                                tjänster</a>
+                        </li>
                         @* Om en användare är inloggad, kolla om denne är stylist eller admin och visa i så fall administrationsmeny *@
                         @if (SignInManager.IsSignedIn(User))
                         {
@@ -43,7 +47,7 @@
                             var roles = await UserManager.GetRolesAsync(user); // Hämta roller för användaren
                             @if (roles.Contains("Admin") || roles.Contains("Stylist"))
                             {
-                            <partial name="_AdministrationPartial" />
+                                <partial name="_AdministrationPartial" />
                             }
                         }
                     </ul>
@@ -58,7 +62,7 @@
         </main>
     </div>
 
-<footer class="footer border-top mt-auto bg-dark text-light fixed-bottom">
+    <footer class="footer border-top mt-auto bg-dark text-light fixed-bottom">
         <div class="container">
             <div class="row">
 
