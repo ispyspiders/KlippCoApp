@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using KlippCoApp.Data;
 using KlippCoApp.Models;
+using Microsoft.AspNetCore.Authorization;
+
 
 namespace KlippCoApp.Controllers
 {
@@ -44,6 +46,7 @@ namespace KlippCoApp.Controllers
         }
 
         // GET: Service/Create
+        [Authorize(Roles = "Admin,Stylist")]
         public IActionResult Create()
         {
             return View();
@@ -66,6 +69,7 @@ namespace KlippCoApp.Controllers
         }
 
         // GET: Service/Edit/5
+        [Authorize(Roles = "Admin,Stylist")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -117,6 +121,7 @@ namespace KlippCoApp.Controllers
         }
 
         // GET: Service/Delete/5
+        [Authorize(Roles = "Admin,Stylist")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)

@@ -26,6 +26,8 @@ namespace KlippCoApp.Areas.Identity.Pages.Account
     {
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
+
         private readonly IUserStore<ApplicationUser> _userStore;
         private readonly IUserEmailStore<ApplicationUser> _emailStore;
         private readonly ILogger<RegisterModel> _logger;
@@ -34,6 +36,7 @@ namespace KlippCoApp.Areas.Identity.Pages.Account
         public RegisterModel(
             UserManager<ApplicationUser> userManager,
             IUserStore<ApplicationUser> userStore,
+                RoleManager<IdentityRole> roleManager,
             SignInManager<ApplicationUser> signInManager,
             ILogger<RegisterModel> logger,
             IEmailSender emailSender)
@@ -42,6 +45,7 @@ namespace KlippCoApp.Areas.Identity.Pages.Account
             _userStore = userStore;
             _emailStore = GetEmailStore();
             _signInManager = signInManager;
+            _roleManager = roleManager;
             _logger = logger;
             _emailSender = emailSender;
         }
@@ -101,10 +105,13 @@ namespace KlippCoApp.Areas.Identity.Pages.Account
 
             // Extra fält
             [Display(Name = "Förnamn")]
-            public string Firstname {get;set;}
+            public string Firstname { get; set; }
 
             [Display(Name = "Efternamn")]
-            public string Lastname {get;set;}
+            public string Lastname { get; set; }
+
+            [Display(Name = "Role")]
+            public string Role { get; set; } = "Customer";
         }
 
 
@@ -129,6 +136,22 @@ namespace KlippCoApp.Areas.Identity.Pages.Account
                 if (result.Succeeded)
                 {
                     _logger.LogInformation("User created a new account with password.");
+
+                    // Om ingen roll anges, sätt "Customer" som standard
+                    string roleToAssign = string.IsNullOrEmpty(Input.Role) ? "Customer" : Input.Role;
+
+                    // Kontrollera om rollen finns med hjälp av RoleManager
+                    var roleExists = await _roleManager.RoleExistsAsync(roleToAssign); // Ändra här till _roleManager
+                    if (roleExists)
+                    {
+                        // Tilldela den valda rollen (eller standardrollen)
+                        await _userManager.AddToRoleAsync(user, roleToAssign);
+                    }
+                    else
+                    {
+                        ModelState.AddModelError(string.Empty, "Den angivna rollen finns inte.");
+                        return Page(); // Om rollen inte finns, visa formuläret igen med felmeddelande.
+                    }
 
                     var userId = await _userManager.GetUserIdAsync(user);
                     var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);

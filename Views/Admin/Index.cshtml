@@ -1,0 +1,74 @@
+@model List<UserRolesViewModel>
+
+@{
+    ViewData["Title"] = "Admin - Användarhantering";
+    Layout = "_AdminLayout";
+    ViewData["BodyClass"] = "admin-page";
+}
+
+<div class="container">
+    <h1>@ViewData["Title"]</h1>
+    <hr />
+    <form method="get" class="row g-3">
+        <div class="col-auto">
+            <label for="roleFilter" class="col-form-label">Filtrera användare:</label>
+        </div>
+        <div class="col-auto">
+            <select name="roleFilter" id="roleFilter" class="form-control" asp-items="ViewBag.Roles">
+                <option value="">Alla roller</option>
+            </select>
+        </div>
+
+        <div class="col-auto">
+            <label for="searchString" class="visually-hidden">Sök användare:</label>
+            <input type="text" id="searchString" name="searchString" class="form-control"
+                value="@ViewData["SearchString"]" placeholder="Sök användare" />
+        </div>
+        <div class="col-auto">
+
+            <button type="submit" class="btn btn-primary">Filtrera och sök</button>
+        </div>
+    </form>
+
+    <hr>
+
+    <!-- Visa användare i en tabell -->
+    @if (Model.Any())
+    {
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>E-post</th>
+                    <th>Användarnamn</th>
+                    <th>Förnamn</th>
+                    <th>Efternamn</th>
+                    <th>Roller</th>
+                    <th>Åtgärder</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var userRole in Model)
+                {
+                    <tr>
+                        <td>@userRole.User.Email</td>
+                        <td>@userRole.User.UserName</td>
+                        <td>@userRole.User.Firstname</td>
+                        <td>@userRole.User.Lastname</td>
+                        <td>@string.Join(", ", userRole.Roles)</td>
+                        
+                        @* Redigera /radera *@
+                        @* <td>
+                            <a href="@Url.Action("Edit", "Admin", new { id = userRole.User.Id })">Redigera</a> |
+                            <a href="@Url.Action("Delete", "Admin", new { id = userRole.User.Id })">Radera</a>
+                        </td> *@
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <p>Inga användare hittades.</p>
+    }
+
+</div>
