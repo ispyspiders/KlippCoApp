@@ -1,0 +1,19 @@
+using System.ComponentModel.DataAnnotations;
+
+namespace KlippCoApp.Models;
+
+public class Service
+{
+    public int Id { get; set; }
+
+    [Required]
+    [Display(Name = "Namn")]
+    public string? Name { get; set; }
+
+    [Display(Name = "Beskrivning")]
+    public string? Description { get; set; }
+
+    [Required]
+    [Display(Name = "Pris")]
+    public int price { get; set; } = 0; // Noll som standard
+}
