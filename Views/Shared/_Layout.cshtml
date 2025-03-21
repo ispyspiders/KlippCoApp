@@ -1,4 +1,8 @@
-﻿<!DOCTYPE html>
+﻿@using Microsoft.AspNetCore.Identity
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -32,10 +36,16 @@
                             <a class="nav-link text-light" asp-area="" asp-controller="Home"
                                 asp-action="Index">Start</a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-light" asp-area="" asp-controller="Home"
-                                asp-action="Privacy">Administration</a>
-                        </li>
+                        @* Om en användare är inloggad, kolla om denne är stylist eller admin och visa i så fall administrationsmeny *@
+                        @if (SignInManager.IsSignedIn(User))
+                        {
+                            var user = await UserManager.GetUserAsync(User); // Hämta nuvarande användaren
+                            var roles = await UserManager.GetRolesAsync(user); // Hämta roller för användaren
+                            @if (roles.Contains("Admin") || roles.Contains("Stylist"))
+                            {
+                            <partial name="_AdministrationPartial" />
+                            }
+                        }
                     </ul>
                     <partial name="_LoginPartial" />
                 </div>
