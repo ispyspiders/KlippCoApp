@@ -12,4 +12,6 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     }
 
 public DbSet<KlippCoApp.Models.Service> Service { get; set; } = default!;
+
+public DbSet<KlippCoApp.Models.StylistSchedule> StylistSchedule { get; set; } = default!;
 }
