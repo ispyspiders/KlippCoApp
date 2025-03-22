@@ -1,77 +1,109 @@
 @model IEnumerable<KlippCoApp.Models.StylistSchedule>
 
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<ApplicationUser> UserManager
+@inject SignInManager<ApplicationUser> SignInManager
+
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Schema";
+    Layout = "_AdminLayout";
+    ViewData["BodyClass"] = "admin-page";
 }
 
-<h1>Index</h1>
-
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Stylist)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Day)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.StartTime)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.EndTime)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.BreakStart)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.BreakEnd)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.IsAvailable)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.BufferTime)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Stylist.Id)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Day)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.StartTime)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.EndTime)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.BreakStart)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.BreakEnd)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.IsAvailable)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.BufferTime)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
+@{
+    var user = SignInManager.IsSignedIn(User) ? await UserManager.GetUserAsync(User) : null;
+    var roles = user != null ? await UserManager.GetRolesAsync(user) : null;
+    var isAdmin = roles != null && roles.Contains("Admin");
 }
-    </tbody>
-</table>
+
+<div class="container">
+    <h1>@ViewData["Title"]</h1>
+
+    <p>
+        <a asp-action="Create">Lägg till schema</a>
+    </p>
+    <form method="get" class="row g-3">
+        <div class="col-auto">
+            <label for="StylistId" class="col-form-label">Välj Stylist</label>
+        </div>
+        <div class="col-auto">
+            <select name="selectedStylistId" id="stylistId" class="form-control"
+                asp-items="@ViewData["StylistId"] as SelectList">
+                <option value="">Visa alla</option>
+            </select>
+        </div>
+        <div class="col-auto mb-2">
+            <button type="submit" class="btn btn-primary">Filtrera</button>
+        </div>
+    </form>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>
+                    @Html.DisplayNameFor(model => model.Stylist)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.Day)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.StartTime)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.EndTime)
+                </th>
+                <th>
+                    Rast
+                </th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>
+                        @if (item.Stylist != null)
+                        {
+                            @Html.DisplayFor(modelItem => item.Stylist.Firstname)
+                        }
+                        else
+                        {
+                            <p>Namn inte tillgängligt</p>
+                        }
+                    </td>
+
+                    <td>
+                        @item.Day.ToShortDateString()
+                    </td>
+
+                    <td>
+                        @item.StartTime.ToString(@"hh\:mm")
+                    </td>
+
+                    <td>
+                        @item.EndTime.ToString(@"hh\:mm")
+                    </td>
+
+                    <td>
+                        @item.BreakStart.ToString(@"hh\:mm")
+                        <span>-</span>
+                        @item.BreakEnd.ToString(@"hh\:mm")
+                    </td>
+
+                    @if (isAdmin || item.StylistId == user.Id)
+                    {
+                        <td>
+                            <a asp-action="Edit" asp-route-id="@item.Id" class="">Redigera</a> |
+                            <a asp-action="Delete" asp-route-id="@item.Id" class="text-danger">Radera</a>
+                        </td>
+                    }
+                    else
+                    {
+                        <td></td>
+                    }    
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

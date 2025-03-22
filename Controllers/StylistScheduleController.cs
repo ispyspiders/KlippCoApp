@@ -8,9 +8,11 @@ using Microsoft.EntityFrameworkCore;
 using KlippCoApp.Data;
 using KlippCoApp.Models;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authorization;
 
 namespace KlippCoApp.Controllers
 {
+    [Authorize(Roles = "Admin,Stylist")]
     public class StylistScheduleController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -23,10 +25,27 @@ namespace KlippCoApp.Controllers
         }
 
         // GET: StylistSchedule
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string selectedStylistId)
         {
-            var applicationDbContext = _context.StylistSchedule.Include(s => s.Stylist);
-            return View(await applicationDbContext.ToListAsync());
+            // Hämta alla användare som har rollen "Stylist"
+            var stylists = await _userManager.GetUsersInRoleAsync("Stylist");
+
+            // Skapa en SelectList för dropdownen med alla stylisters namn och ID
+            ViewData["StylistId"] = new SelectList(stylists, "Id", "UserName", selectedStylistId);
+
+            // Skapa en query för scheman, börja med att inkludera Stylist för relationen
+            IQueryable<StylistSchedule> schedulesQuery = _context.StylistSchedule.Include(s => s.Stylist);
+
+            // Filtrera om en stylist är vald
+            if (!string.IsNullOrEmpty(selectedStylistId))
+            {
+                schedulesQuery = schedulesQuery.Where(s => s.StylistId == selectedStylistId);
+            }
+
+            // Hämta alla scheman (eller filtrerade baserat på stylist-id)
+            var schedules = await schedulesQuery.ToListAsync();
+
+            return View(schedules);
         }
 
         // GET: StylistSchedule/Details/5
@@ -72,44 +91,41 @@ namespace KlippCoApp.Controllers
         // POST: StylistSchedule/Create
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-[HttpPost]
-[ValidateAntiForgeryToken]
-public async Task<IActionResult> Create([Bind("Id,StylistId,Day,StartTime,EndTime,BreakStart,BreakEnd,IsAvailable,BufferTime")] StylistSchedule stylistSchedule)
-{
-    if (ModelState.IsValid)
-    {
-        // Om användaren inte är en admin, sätt StylistId till den inloggade användaren
-        if (!User.IsInRole("Admin"))
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create([Bind("Id,StylistId,Day,StartTime,EndTime,BreakStart,BreakEnd,IsAvailable,BufferTime")] StylistSchedule stylistSchedule)
         {
-            stylistSchedule.StylistId = _userManager.GetUserId(User); // Sätt StylistId till den inloggade användaren
+            if (ModelState.IsValid)
+            {
+                // Om användaren inte är en admin, sätt StylistId till den inloggade användaren
+                if (!User.IsInRole("Admin"))
+                {
+                    stylistSchedule.StylistId = _userManager.GetUserId(User); // Sätt StylistId till den inloggade användaren
+                }
+
+                _context.Add(stylistSchedule);
+                await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(Index));
+            }
+
+            // Om något gick fel, visa listan för att skapa en stylist
+            if (User.IsInRole("Admin"))
+            {
+                // Hämta alla användare som har rollen "Stylist"
+                var stylists = await _userManager.GetUsersInRoleAsync("Stylist");
+
+                // Skapa en SelectList med stylisternas Id och UserName
+                ViewData["StylistId"] = new SelectList(stylists, "Id", "UserName", stylistSchedule.StylistId);
+            }
+            else
+            {
+                // Om det inte är en admin, sätt dropdownen till den inloggade användaren
+                var currentUser = await _userManager.GetUserAsync(User);
+                ViewData["StylistId"] = new SelectList(new List<ApplicationUser> { currentUser }, "Id", "UserName", stylistSchedule.StylistId);
+            }
+
+            return View(stylistSchedule);
         }
-
-        _context.Add(stylistSchedule);
-        await _context.SaveChangesAsync();
-        return RedirectToAction(nameof(Index));
-    }
-
-    // Om något gick fel, visa listan för att skapa en stylist
-    if (User.IsInRole("Admin"))
-    {
-        // Hämta alla användare som har rollen "Stylist"
-        var stylists = await _userManager.GetUsersInRoleAsync("Stylist");
-
-        // Skapa en SelectList med stylisternas Id och UserName
-        ViewData["StylistId"] = new SelectList(stylists, "Id", "UserName", stylistSchedule.StylistId);
-    }
-    else
-    {
-        // Om det inte är en admin, sätt dropdownen till den inloggade användaren
-        var currentUser = await _userManager.GetUserAsync(User);
-        ViewData["StylistId"] = new SelectList(new List<ApplicationUser> { currentUser }, "Id", "UserName", stylistSchedule.StylistId);
-    }
-
-    return View(stylistSchedule);
-}
-
-
-
 
         // GET: StylistSchedule/Edit/5
         public async Task<IActionResult> Edit(int? id)
