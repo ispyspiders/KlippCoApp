@@ -32,7 +32,7 @@ public class StylistSchedule
 
     // Tillgänglighet
     [Display(Name = "Arbetar")]
-    public bool IsAvailable { get; set; } // Om frisören är tillgänglig hela dagen eller inte
+    public bool IsAvailable { get; set; } = true; // Om frisören är tillgänglig hela dagen eller inte
 
     // Buffertid
     public TimeSpan BufferTime { get; set; } = TimeSpan.FromMinutes(15); // Buffer-tid mellan bokningar (t.ex. 15 minuter)

@@ -1,67 +1,74 @@
 @model KlippCoApp.Models.StylistSchedule
 
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Skapa schema";
+    Layout = "_AdminLayout";
+    ViewData["BodyClass"] = "admin-page";
 }
 
-<h1>Create</h1>
 
-<h4>StylistSchedule</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Create">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="StylistId" class="control-label"></label>
-                <select asp-for="StylistId" class ="form-control" asp-items="ViewBag.StylistId"></select>
-            </div>
-            <div class="form-group">
-                <label asp-for="Day" class="control-label"></label>
-                <input asp-for="Day" class="form-control" />
-                <span asp-validation-for="Day" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="StartTime" class="control-label"></label>
-                <input asp-for="StartTime" class="form-control" />
-                <span asp-validation-for="StartTime" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="EndTime" class="control-label"></label>
-                <input asp-for="EndTime" class="form-control" />
-                <span asp-validation-for="EndTime" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="BreakStart" class="control-label"></label>
-                <input asp-for="BreakStart" class="form-control" />
-                <span asp-validation-for="BreakStart" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="BreakEnd" class="control-label"></label>
-                <input asp-for="BreakEnd" class="form-control" />
-                <span asp-validation-for="BreakEnd" class="text-danger"></span>
-            </div>
-            <div class="form-group form-check">
-                <label class="form-check-label">
-                    <input class="form-check-input" asp-for="IsAvailable" /> @Html.DisplayNameFor(model => model.IsAvailable)
-                </label>
-            </div>
-            <div class="form-group">
-                <label asp-for="BufferTime" class="control-label"></label>
-                <input asp-for="BufferTime" class="form-control" />
-                <span asp-validation-for="BufferTime" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
-            </div>
-        </form>
+<div class="container">
+
+    <h1>@ViewData["Title"]</h1>
+
+    <h4>Stylist schema</h4>
+    <hr />
+    <div class="row">
+        <div class="col-md-4">
+          <form asp-action="Create" method="post">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="form-group mb-2">
+        <label for="StylistId">Stylist</label>
+        <select asp-for="StylistId" class="form-control" asp-items="@(ViewData["StylistId"] as SelectList)">
+            <option value="">Välj en stylist</option>
+        </select>
+        <span asp-validation-for="StylistId" class="text-danger"></span>
+    </div>
+
+    <div class="form-group mb-2">
+        <label asp-for="Day" class="control-label"></label>
+        <input asp-for="Day" type="date" class="form-control" />
+        <span asp-validation-for="Day" class="text-danger"></span>
+    </div>
+
+    <div class="form-group mb-2">
+        <label asp-for="StartTime" class="control-label"></label>
+        <input asp-for="StartTime" type="time" min="06:00" max="20:00" class="form-control" />
+        <span asp-validation-for="StartTime" class="text-danger"></span>
+    </div>
+
+    <div class="form-group mb-2">
+        <label asp-for="EndTime" class="control-label"></label>
+        <input asp-for="EndTime" type="time" min="06:00" max="20:00" class="form-control" />
+        <span asp-validation-for="EndTime" class="text-danger"></span>
+    </div>
+
+    <div class="form-group mb-2">
+        <label asp-for="BreakStart" class="control-label"></label>
+        <input asp-for="BreakStart" type="time" min="06:00" max="20:00" class="form-control" />
+        <span asp-validation-for="BreakStart" class="text-danger"></span>
+    </div>
+
+    <div class="form-group mb-2">
+        <label asp-for="BreakEnd" class="control-label"></label>
+        <input asp-for="BreakEnd" type="time" min="06:00" max="20:00" class="form-control" />
+        <span asp-validation-for="BreakEnd" class="text-danger"></span>
+    </div>
+
+    <div class="form-group mt-4 mb-2">
+        <button type="submit" class="btn btn-primary">Skapa Schema</button>
+    </div>
+</form>
+
+        </div>
+    </div>
+
+    <div>
+        <a asp-action="Index">Tillbaka till scheman</a>
     </div>
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
-
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
 }
