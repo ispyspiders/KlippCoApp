@@ -36,4 +36,7 @@ public class StylistSchedule
 
     // Buffertid
     public TimeSpan BufferTime { get; set; } = TimeSpan.FromMinutes(15); // Buffer-tid mellan bokningar (t.ex. 15 minuter)
+
+    // Samling för boknigar
+    public ICollection<Booking> Bookings { get; set; }
 }
