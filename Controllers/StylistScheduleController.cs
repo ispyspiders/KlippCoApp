@@ -226,6 +226,11 @@ namespace KlippCoApp.Controllers
                 return NotFound();
             }
 
+            var currentUser = await _userManager.GetUserAsync(User);
+            if(!User.IsInRole("Admin") && currentUser.Id != stylistSchedule.StylistId){
+                return Forbid();
+            }
+
             return View(stylistSchedule);
         }
 
