@@ -140,6 +140,18 @@ namespace KlippCoApp.Controllers
             {
                 return NotFound();
             }
+
+            // Läs in inloggad användare
+            var currentUser = await _userManager.GetUserAsync(User);
+            // Är användaren inte Admin eller ägare av schemat
+            if (!User.IsInRole("Admin") && stylistSchedule.StylistId != currentUser.Id)
+            {
+                return Forbid();
+            }
+
+            var stylist = await _userManager.FindByIdAsync(stylistSchedule.StylistId);
+            if (stylist != null) ViewData["StylistName"] = $"{stylist.Firstname} {stylist.Lastname}";
+
             ViewData["StylistId"] = new SelectList(_context.Users, "Id", "Id", stylistSchedule.StylistId);
             return View(stylistSchedule);
         }
@@ -160,7 +172,25 @@ namespace KlippCoApp.Controllers
             {
                 try
                 {
-                    _context.Update(stylistSchedule);
+                    // Kontrollera att användaren är Admin eller ägaren av schemat
+                    var currentUser = await _userManager.GetUserAsync(User);
+                    if (!User.IsInRole("Admin") && stylistSchedule.StylistId != currentUser.Id)
+                    {
+                        return Forbid(); // Eller en annan lämplig hantering av åtkomst nekad
+                    }
+
+                    var existingSchedule = await _context.StylistSchedule.FindAsync(id);
+                    if (existingSchedule == null)
+                    {
+                        return NotFound();
+                    }
+
+                    existingSchedule.StartTime = stylistSchedule.StartTime;
+                    existingSchedule.EndTime = stylistSchedule.EndTime;
+                    existingSchedule.BreakStart = stylistSchedule.BreakStart;
+                    existingSchedule.BreakEnd = stylistSchedule.BreakEnd;
+
+                    _context.Update(existingSchedule);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
