@@ -2,9 +2,12 @@
 @model AccessDeniedModel
 @{
     ViewData["Title"] = "Access denied";
+    Layout = "_AdminLayout";
+    ViewData["BodyClass"] = "admin-page";
 }
 
 <header>
     <h1 class="text-danger">@ViewData["Title"]</h1>
-    <p class="text-danger">You do not have access to this resource.</p>
+    <p class="text-danger">Du saknar behörighet för att komma åt denna resurs.
+    </p>
 </header>
