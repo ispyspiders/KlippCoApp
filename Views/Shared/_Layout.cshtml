@@ -14,6 +14,7 @@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/KlippCoApp.styles.css" asp-append-version="true" />
 
+    @* Google fonts: Cinzel & Inter *@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
@@ -37,8 +38,8 @@
                                 asp-action="Index">Start</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-light" asp-area="" asp-controller="Service"
-                                asp-action="Index">Våra tjänster</a>
+                            <a class="nav-link text-light" asp-area="" asp-controller="Service" asp-action="Index">Våra
+                                tjänster</a>
                         </li>
                         @* Om en användare är inloggad, kolla om denne är stylist eller admin och visa i så fall administrationsmeny *@
                         @if (SignInManager.IsSignedIn(User))
@@ -47,7 +48,7 @@
                             var roles = await UserManager.GetRolesAsync(user); // Hämta roller för användaren
                             @if (roles.Contains("Admin") || roles.Contains("Stylist"))
                             {
-                            <partial name="_AdministrationPartial" />
+                                <partial name="_AdministrationPartial" />
                             }
                         }
                     </ul>

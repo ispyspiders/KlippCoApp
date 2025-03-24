@@ -11,6 +11,11 @@ public class Booking
     public string CustomerId { get; set; }
     public ApplicationUser Customer { get; set; }
 
+    // Stylist
+    [Required]
+    public string StylistId { get; set; }
+    public ApplicationUser Stylist { get; set;}
+
     // Stylistens schema
     [Required]
     public int StylistScheduleId { get; set; }

@@ -16,6 +16,9 @@ builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.R
     .AddEntityFrameworkStores<ApplicationDbContext>();
 builder.Services.AddControllersWithViews();
 
+// Registrera BookingService
+builder.Services.AddScoped<BookingService>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
