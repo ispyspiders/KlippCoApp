@@ -16,6 +16,7 @@ public class HomeController : Controller
 
     public IActionResult Index()
     {
+        ViewBag.UseLargeFooter = true;
         return View();
     }
 
