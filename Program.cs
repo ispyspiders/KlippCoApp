@@ -1,9 +1,15 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using System.Globalization;
 using KlippCoApp.Data;
 using KlippCoApp.Models;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Ställ in kultur
+var cultureInfo = new System.Globalization.CultureInfo("sv-SE");
+CultureInfo.DefaultThreadCurrentCulture = cultureInfo;
+CultureInfo.DefaultThreadCurrentUICulture = cultureInfo;
 
 // Add services to the container.
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
