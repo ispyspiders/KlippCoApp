@@ -34,7 +34,9 @@ namespace KlippCoApp.Controllers
             ViewData["StylistId"] = new SelectList(stylists, "Id", "UserName", selectedStylistId);
 
             // Skapa en query för scheman, börja med att inkludera Stylist för relationen
-            IQueryable<StylistSchedule> schedulesQuery = _context.StylistSchedule.Include(s => s.Stylist);
+            IQueryable<StylistSchedule> schedulesQuery = _context.StylistSchedule
+                .Include(s => s.Stylist)
+                .OrderByDescending(s=>s.Day); // Nyast först
 
             // Filtrera om en stylist är vald
             if (!string.IsNullOrEmpty(selectedStylistId))
@@ -93,22 +95,25 @@ namespace KlippCoApp.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,StylistId,Day,StartTime,EndTime,BreakStart,BreakEnd,IsAvailable,BufferTime")] StylistSchedule stylistSchedule)
+        public async Task<IActionResult> Create([Bind("StylistId,Day,StartTime,EndTime,BreakStart,BreakEnd,IsAvailable,BufferTime")] StylistSchedule stylistSchedule)
         {
+
+            // Om användaren inte är en admin, sätt StylistId till den inloggade användaren
+            if (!User.IsInRole("Admin"))
+            {
+                stylistSchedule.StylistId = _userManager.GetUserId(User); // Sätt StylistId till den inloggade användaren
+            }
+
+            var allErrors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+
             if (ModelState.IsValid)
             {
-                // Om användaren inte är en admin, sätt StylistId till den inloggade användaren
-                if (!User.IsInRole("Admin"))
-                {
-                    stylistSchedule.StylistId = _userManager.GetUserId(User); // Sätt StylistId till den inloggade användaren
-                }
-
                 _context.Add(stylistSchedule);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
 
-            // Om något gick fel, visa listan för att skapa en stylist
+
             if (User.IsInRole("Admin"))
             {
                 // Hämta alla användare som har rollen "Stylist"
@@ -121,7 +126,7 @@ namespace KlippCoApp.Controllers
             {
                 // Om det inte är en admin, sätt dropdownen till den inloggade användaren
                 var currentUser = await _userManager.GetUserAsync(User);
-                ViewData["StylistId"] = new SelectList(new List<ApplicationUser> { currentUser }, "Id", "UserName", stylistSchedule.StylistId);
+                ViewData["StylistId"] = new SelectList(new List<ApplicationUser> { currentUser }, "Id", "UserName", currentUser.Id);
             }
 
             return View(stylistSchedule);
@@ -227,7 +232,8 @@ namespace KlippCoApp.Controllers
             }
 
             var currentUser = await _userManager.GetUserAsync(User);
-            if(!User.IsInRole("Admin") && currentUser.Id != stylistSchedule.StylistId){
+            if (!User.IsInRole("Admin") && currentUser.Id != stylistSchedule.StylistId)
+            {
                 return Forbid();
             }
 

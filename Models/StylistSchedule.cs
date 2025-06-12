@@ -9,6 +9,7 @@ public class StylistSchedule
     [Required]
     [Display(Name = "Stylist")]
     public string? StylistId { get; set; } // Koppling till frisören (användar-ID)
+    
     public ApplicationUser? Stylist { get; set; } // Frisören som använder detta schema
 
     [Required]
@@ -37,6 +38,6 @@ public class StylistSchedule
     // Buffertid
     public TimeSpan BufferTime { get; set; } = TimeSpan.FromMinutes(15); // Buffer-tid mellan bokningar (t.ex. 15 minuter)
 
-    // Samling för boknigar
-    public ICollection<Booking> Bookings { get; set; }
+    // Samling för boknigar, initiera som tom lista
+    public ICollection<Booking> Bookings { get; set; } = new List<Booking>();
 }
