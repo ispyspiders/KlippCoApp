@@ -1,6 +1,8 @@
 using System.Security.Claims;
+using System.Threading.Tasks;
 using KlippCoApp.Data;
 using KlippCoApp.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -21,25 +23,8 @@ public class BookingController : Controller
         _logger = logger;
     }
 
-
-
-    // Steg 1: Välj tjänst
-    [HttpGet]
-    public async Task<IActionResult> SelectService()
-    {
-        var services = await _context.Service.ToListAsync();
-        return View(services);
-    }
-
-    [HttpPost]
-    public async Task<IActionResult> SelectService(int serviceId)
-    {
-        return RedirectToAction("SelectStylist", new { serviceId = serviceId });
-    }
-
-    // Steg 2: Välj utövare
-    [HttpGet]
-    public async Task<IActionResult> SelectStylist(int serviceId)
+    // Hjälpmetod för att hämta alla stylister
+    private async Task<List<ApplicationUser>> GetAllStylistsAsync()
     {
         // Hämta alla användare som har rollen "Stylist"
         var users = await _context.Users.ToListAsync();
@@ -53,12 +38,35 @@ public class BookingController : Controller
                 stylists.Add(user);
             }
         }
+        return stylists;
+    }
 
-        // Hämta tjänsten baserat på serviceId (den tjänst som valdes på föregående steg)
-        var service = await _context.Service.FirstOrDefaultAsync(s => s.Id == serviceId);
 
-        // Skicka den valda tjänsten till vyn via ViewBag
-        ViewBag.Service = service;
+    // Steg 1: Välj tjänst
+    [HttpGet]
+    public async Task<IActionResult> SelectService()
+    {
+        var services = await _context.Service.ToListAsync();
+        return View(services);
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> SelectService(int serviceId)
+    {
+        return RedirectToAction("SelectStylist", new { serviceId });
+    }
+
+    // Steg 2: Välj utövare
+    [HttpGet]
+    public async Task<IActionResult> SelectStylist(int serviceId)
+    {
+        var stylists = await GetAllStylistsAsync();
+
+        // Läs in och skicka service
+        ViewBag.Service = await _context.Service.FindAsync(serviceId);
+
+        // Lägg till "valfri utövare"
+        stylists.Insert(0, new ApplicationUser { Id = "", Firstname = "Valfri utövare" });
 
         // Returnera vyn med listan av stylister
         return View(stylists);
@@ -67,7 +75,7 @@ public class BookingController : Controller
     [HttpPost]
     public async Task<IActionResult> SelectStylist(int serviceId, string stylistId)
     {
-        return RedirectToAction("SelectTime", new { serviceId = serviceId, stylistId = stylistId });
+        return RedirectToAction("SelectTime", new { serviceId, stylistId });
     }
 
 
@@ -75,161 +83,135 @@ public class BookingController : Controller
     [HttpGet]
     public async Task<IActionResult> SelectTime(string stylistId, int serviceId)
     {
-        var stylist = await _context.Users.FirstOrDefaultAsync(u => u.Id == stylistId);
         var service = await _context.Service.FirstOrDefaultAsync(s => s.Id == serviceId);
+        if (service == null) return NotFound();
 
-        if (stylist == null || service == null) return NotFound();
+        var events = new List<object>();
 
-        // Hämta lediga tider baserat på stylistens schema
-        var availableTimes = await GetAvailableTimesAsync(stylist, service);
-
-        // Skapa lista med lediga tider i ett format FullCalendar kan förstå
-        var events = availableTimes.Select(time => new
+        if (string.IsNullOrEmpty(stylistId))
         {
-            title = $"{service.Name} - {stylist.Firstname}",
-            start = time.ToString("yyyy-MM-ddTHH:mm:ss"),
-            end = time.AddMinutes(service.Duration).ToString("yyyy-MM-ddTHH:mm:ss")
-        }).ToList();
-
-        ViewBag.Service = service;
-        ViewBag.Stylist = stylist;
+            // "Valfri utövare" vald, hämta alla tider för alla stylister
+            var stylists = await GetAllStylistsAsync();
+            foreach (var stylist in stylists)
+            {
+                var times = await _bookingService.GetAvailableTimesAsync(stylist.Id, service);
+                foreach (var t in times)
+                {
+                    events.Add(new
+                    {
+                        title = $"{service.Name} – {stylist.Firstname}",
+                        start = t.ToString("s"),
+                        allDay = false,
+                        extendedProps = new { stylistId = stylist.Id, stylistName = stylist.Firstname }
+                    });
+                }
+            }
+        }
+        else
+        {
+            // Specifik stylist vald
+            var stylist = await _context.Users.FindAsync(stylistId);
+            if (stylist == null) return NotFound();
+            var times = await _bookingService.GetAvailableTimesAsync(stylist.Id, service);
+            foreach (var t in times)
+            {
+                events.Add(new
+                {
+                    title = $"{service.Name} – {stylist.Firstname}",
+                    start = t.ToString("s"),
+                    allDay = false,
+                    extendedProps = new { stylistId = stylist.Id, stylistName = stylist.Firstname }
+                });
+            }
+        }
         ViewBag.Events = events;
-
+        ViewBag.Service = service;
+        ViewBag.ServiceId = service.Id;
         return View();
     }
 
     [HttpPost]
     public async Task<IActionResult> SelectTime(string stylistId, int serviceId, string bookingTime)
     {
-        var stylist = await _context.Users.FirstOrDefaultAsync(u => u.Id == stylistId);
-        var service = await _context.Service.FirstOrDefaultAsync(s => s.Id == serviceId);
+        var stylist = await _context.Users.FindAsync(stylistId);
+        var service = await _context.Service.FindAsync(serviceId);
 
-        if (stylist == null || service == null) return NotFound();
-
-        if (DateTime.TryParse(bookingTime, out DateTime selectedBookingTime))
+        if (stylist == null || service == null)
         {
-            var model = new BookingViewModel
-            {
-                ServiceId = serviceId,
-                StylistId = stylistId,
-                ServiceName = service.Name,
-                StylistName = stylist.Firstname,
-                BookingTime = selectedBookingTime
-            };
-            return View("ConfirmBooking", model);
-        }
-        else
-        {
-            ModelState.AddModelError("", "Ogiltig tid vald.");
-            return View();
+            return BadRequest();
         }
 
+        if (!DateTimeOffset.TryParse(bookingTime, out var parsedOffsetTime))
+        {
+            return BadRequest();
+        }
 
-        // return RedirectToAction("ConfirmBooking", new { serviceId = serviceId, stylistId = stylistId, bookingTime = bookingTime });
+        var model = new BookingViewModel
+        {
+            ServiceId = service.Id,
+            ServiceName = service.Name,
+            StylistId = stylistId,
+            StylistName = stylist.Firstname,
+            BookingTime = parsedOffsetTime // ← använd direkt
+        };
+
+        return View("ConfirmBooking", model);
     }
+
+
 
     // Steg 4: Bekräfta bokning
-    [HttpGet]
-    public async Task<IActionResult> ConfirmBooking(BookingViewModel model)
-    {
-        if (!ModelState.IsValid) return RedirectToAction("SelectTime");
-
-        return View(model); // Rendera bekräftelsesidan för användaren
-    }
-
     [HttpPost]
+    [Authorize]
     public async Task<IActionResult> CreateBooking(BookingViewModel model)
     {
-        if (ModelState.IsValid)
+        if (!ModelState.IsValid) return View("ConfirmBooking", model);
+
+        // Om användare inte är inloggad skicka till logga in
+        if (!User.Identity.IsAuthenticated)
         {
-
-            // Hämta stylist och tjänst
-            var stylist = await _context.Users.FirstOrDefaultAsync(u => u.Id == model.StylistId);
-            var service = await _context.Service.FirstOrDefaultAsync(s => s.Id == model.ServiceId);
-
-            if (stylist == null || service == null)
-            {
-                ModelState.AddModelError("", "Tjänst eller stylist finns inte");
-                return View("ConfirmBooking", model);
-            }
-
-            // SKapa bokning
-            var booking = new Booking
-            {
-                CustomerId = User.FindFirstValue(ClaimTypes.NameIdentifier),
-                StylistId = model.StylistId,
-                ServiceId = model.ServiceId,
-                BookingTime = model.BookingTime
-            };
-
-            var result = await _bookingService.CreateBookingAsync(booking);
-            if (result)
-            {
-                return RedirectToAction("BookingConfirmation", new { id = booking.Id });
-            }
-
-            ModelState.AddModelError("", "Tiden är redan bokad. Välj en annan tid.");
-            return View("ConfirmBooking", model);
-
-            // _context.Add(booking);
-            // await _context.SaveChangesAsync();
-        }
-        else return View("ConfirmBooking");
-    }
-
-    private async Task<List<DateTime>> GetAvailableTimesAsync(ApplicationUser stylist, Service service)
-    {
-        var schedule = await _context.StylistSchedule
-                                     .Where(s => s.StylistId == stylist.Id && s.IsAvailable)
-                                     .OrderBy(s => s.Day) // Hämta alla tillgängliga scheman i framtiden
-                                     .ToListAsync();
-
-        if (schedule == null || !schedule.Any()) return new List<DateTime>(); // Om inget schema finns, returnera en tom lista
-
-        var existingBookings = await _context.Bookings
-            .Where(b => b.StylistId == stylist.Id && b.BookingTime.Date >= DateTime.Today)
-            .ToListAsync();
-
-        List<DateTime> availableTimes = new List<DateTime>();
-
-        int serviceDurationInMin = service.Duration;
-
-        // Loop genom alla scheman för stylisten
-        foreach (var daySchedule in schedule)
-        {
-            DateTime currentTime = daySchedule.Day.Date.Add(daySchedule.StartTime);
-
-            while (currentTime.AddMinutes(serviceDurationInMin) <= daySchedule.Day.Date.Add(daySchedule.EndTime))
-            {
-                // Filtrera bort redan passerade tider
-                if (currentTime <= DateTime.Now)
-                {
-                    currentTime = currentTime.AddMinutes(serviceDurationInMin + daySchedule.BufferTime.TotalMinutes);
-                    continue; // Om tiden har passerat, hoppa till nästa tillgängliga tid
-                }
-
-                // Kolla om tiden är bokad
-                bool isBooked = existingBookings.Any(b => b.BookingTime == currentTime);
-
-                if (!isBooked)
-                {
-                    availableTimes.Add(currentTime);
-                }
-
-                // Lägg till buffertid mellan bokningar
-                currentTime = currentTime.AddMinutes(serviceDurationInMin + daySchedule.BufferTime.TotalMinutes);
-            }
+            return RedirectToAction("Login", "Account", new { returnUrl = Url.Action("ConfirmBooking", model) });
         }
 
-        return availableTimes;
-    }
+        // Om inloggad
+        var booking = new Booking
+        {
+            CustomerId = User.FindFirstValue(ClaimTypes.NameIdentifier),
+            StylistId = model.StylistId,
+            ServiceId = model.ServiceId,
+            BookingTime = model.BookingTime.LocalDateTime
+        };
 
+        var success = await _bookingService.CreateBookingAsync(booking);
+
+        if (success) return RedirectToAction("BookingConfirmation", new { id = booking.Id });
+
+        ModelState.AddModelError("", "Tiden är redan bokad");
+        return View("ConfirmBooking", model);
+    }
 
 
     // Visa bokningsbekräftelse
     [HttpGet]
-    public IActionResult BookingConfirmation(BookingViewModel model)
+    public async Task<IActionResult> BookingConfirmation(int id)
     {
-        return View();
+        var booking = await _context.Bookings
+                .Include(b => b.Service)
+                .Include(b => b.Stylist)
+                .FirstOrDefaultAsync(b => b.Id == id);
+
+        if (booking == null) return NotFound();
+
+        // Skapa ViewModel 
+        var model = new BookingViewModel
+        {
+            ServiceId = booking.ServiceId,
+            ServiceName = booking.Service?.Name,
+            StylistId = booking.StylistId,
+            StylistName = booking.Stylist?.Firstname,
+            BookingTime = booking.BookingTime
+        };
+
+        return View(model);
     }
 }

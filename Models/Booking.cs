@@ -14,12 +14,12 @@ public class Booking
     // Stylist
     [Required]
     public string StylistId { get; set; }
-    public ApplicationUser Stylist { get; set;}
+    public ApplicationUser Stylist { get; set; }
 
-    // Stylistens schema
-    [Required]
-    public int StylistScheduleId { get; set; }
-    public StylistSchedule StylistSchedule { get; set; }
+    // // Stylistens schema
+
+    public int? StylistScheduleId { get; set; }
+    public StylistSchedule? StylistSchedule { get; set; }
 
     // Tjänst som bokas
     [Required]

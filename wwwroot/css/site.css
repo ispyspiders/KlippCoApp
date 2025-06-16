@@ -13,6 +13,12 @@
   opacity: 80%;
 }
 
+.btn-primary:disabled {
+  background-color: var(--bs-primary);
+  opacity: 60%;
+  cursor: not-allowed;
+}
+
 
 .nav-pills .nav-link {
   color: var(--bs-secondary-color);
@@ -21,6 +27,7 @@
 .nav-pills .nav-link.active {
   background-color: var(--bs-secondary-color);
 }
+
 .nav-pills .nav-link.active:hover {
   opacity: 100%;
 }

@@ -9,8 +9,10 @@ public class BookingViewModel
         public string StylistName { get; set; }
 
         // Den valda bokningstiden (kan vara i ISO-format eller DateTime)
-        public DateTime BookingTime { get; set; }
+        public DateTimeOffset BookingTime { get; set; }
+        
+        public int? BookingId { get; set; }
 
         // För att lagra eventuella felmeddelanden för användarinteraktion
-        public string ErrorMessage { get; set; }
+    public string? ErrorMessage { get; set; }
     }

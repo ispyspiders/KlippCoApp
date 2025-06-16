@@ -1,7 +1,9 @@
 @model BookingViewModel
+@using Microsoft.AspNetCore.Identity
+@inject SignInManager<ApplicationUser> SignInManager
 
 @{
-    ViewData["Title"] = "Boka";
+    ViewData["Title"] = "Granska bokning";
 }
 
 <div class="banner d-flex justify-content-center align-items-center">
@@ -13,10 +15,20 @@
 
 <div class="container">
     <form asp-action="CreateBooking" method="post" class="mt-4 bg-light rounded p-4">
-        <h2>4. Bekräfta bokning</h2>
-        <p>Tjänst: @Model.ServiceName</p>
-        <p>Stylist: @Model.StylistName</p>
-        <p>Tid: @Model.BookingTime</p>
+        <h2>4. Granska bokning</h2>
+@if (!SignInManager.IsSignedIn(User))
+{
+            <div class="alert alert-warning mt-3">
+                <strong>Du är inte inloggad.</strong><br>
+                <a href="@Url.Action("Login", "Account", new { returnUrl = Url.Action("ConfirmBooking", "Booking", new { serviceId = Model.ServiceId, stylist = Model.StylistId, bookingTime = Model.BookingTime.ToString("o") }) })"
+                    class="btn btn-outline-primary mt-2">
+                    Logga in för att slutföra bokningen
+                </a>
+            </div>
+}
+        <p><strong>Tjänst:</strong> @Model.ServiceName</p>
+        <p><strong>Stylist:</strong> @Model.StylistName</p>
+        <p><strong>Tid:</strong> @Model.BookingTime.LocalDateTime.ToString("yyyy-MM-dd HH:mm")</p>
 
         <div class="progress mb-3">
             <div class="progress-bar bg-success" role="progressbar" style="width: 95%" aria-valuenow="95"
@@ -24,20 +36,44 @@
         </div>
 
         <!-- Hidden fields to pass necessary data for the booking -->
-         <input type="hidden" name="ServiceId" value="@Model.ServiceId" />
-        <input type="hidden" name="StylistId" value="@Model.StylistId" />
-        <input type="hidden" name="BookingTime" value="@Model.BookingTime.ToString("yyyy-MM-ddTHH:mm")" />
+        <input type="hidden" asp-for="ServiceId" />
+        <input type="hidden" asp-for="ServiceName" />
+        <input type="hidden" asp-for="StylistId" />
+        <input type="hidden" asp-for="StylistName" />
+        <input type="hidden" asp-for="BookingTime" />
 
         <div class="form-group mt-4">
-            <button type="submit" class="btn btn-primary">Bekräfta bokning</button>
+            <a 
+                asp-action="SelectTime" 
+                asp-route-serviceId="@Model.ServiceId"
+                asp-route-stylistId="@Model.StylistId"
+                class="btn btn-secondary me-2">
+                Tillbaka
+            </a>
+            <a asp-action="SelectService" class="btn btn-danger me-2">Avbryt</a>
+            @if (User.Identity.IsAuthenticated)
+            {
+                <button type="submit" class="btn btn-primary">Bekräfta bokning</button>
+            }
+            else
+            {
+                <p class="text-danger mt-3">Du måste vara inloggad för att slutföra bokningen.</p>
+            }
         </div>
 
-        @if (!ViewData.ModelState.IsValid)
-        {
+@if (!ViewData.ModelState.IsValid)
+{
             <div class="alert alert-danger mt-4">
                 <strong>Fel!</strong> Något gick fel vid bokningen. Försök igen.
-            </div>
-        }
+                <ul>
 
-    </form>
-</div>
+                    @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                    {
+                        <li>@error.ErrorMessage</li>
+                    }
+                </ul>
+        </div>
+                }
+
+        </form>
+        </div>
