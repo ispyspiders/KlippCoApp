@@ -63,28 +63,39 @@
     </div>
 
     <footer class="footer border-top mt-auto bg-dark text-light fixed-bottom">
-        <div class="container">
-            <div class="row">
+  @if (ViewBag.UseLargeFooter == true)
+            {
+                <div class="row">
 
-                <div class="col-md mt-4 pb-4 lh-lg">
-                    <h3 class="h5">Öppettider</h3>
+                    <div class="col-md mt-4 lh-lg">
+                        <h3 class="h5">Öppettider</h3>
 
-                    <span class="">Mån </span><span>09.00-20.00, </span>
-                    <span class="">Tis </span><span>09.00-20.00, </span>
-                    <br>
-                    <span class="">Ons </span><span>09.00-20.00, -</span>
-                    <span class="">Tors </span><span>09.00-20.00</span>
-                    <br>
-                    <span class="mb-2">Fre </span><span>09.00-20.00</span>
-                </div>
-                <div class="col-md mt-4 pb-4 lh-lg">
-                    <h3 class="h5 mb-1">Klipp&Co</h3>
-                    <p>Tel: 0910-123 45
+                        <span class="">Mån </span><span>09.00-20.00, </span>
+                        <span class="">Tis </span><span>09.00-20.00, </span>
                         <br>
+                        <span class="">Ons </span><span>09.00-20.00, -</span>
+                        <span class="">Tors </span><span>09.00-20.00</span>
+                        <br>
+                        <span class="">Fre </span><span>09.00-20.00</span>
+                    </div>
+                    <div class="col-md mt-4 pb-4 lh-lg">
+                        <h3 class="h5 mb-1">Klipp&Co</h3>
+                        <p>Tel: 0910-123 45
+                            <br>
+                            Storgatan 1, 123 45 Staden
+                        </p>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="d-inline-flex flex-row justify-content-center align-items-center">
+                    <h3 class="h6 m-4">Klipp&Co</h3>
+                    <p class="m-4">Tel: 0910-123 45
                         Storgatan 1, 123 45 Staden
                     </p>
                 </div>
-            </div>
+            }
         </div>
     </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
