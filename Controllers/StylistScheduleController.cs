@@ -36,7 +36,7 @@ namespace KlippCoApp.Controllers
             // Skapa en query för scheman, börja med att inkludera Stylist för relationen
             IQueryable<StylistSchedule> schedulesQuery = _context.StylistSchedule
                 .Include(s => s.Stylist)
-                .OrderByDescending(s=>s.Day); // Nyast först
+                .OrderByDescending(s => s.Day); // Nyast först
 
             // Filtrera om en stylist är vald
             if (!string.IsNullOrEmpty(selectedStylistId))
@@ -47,7 +47,31 @@ namespace KlippCoApp.Controllers
             // Hämta alla scheman (eller filtrerade baserat på stylist-id)
             var schedules = await schedulesQuery.ToListAsync();
 
-            return View(schedules);
+            // Hämta alla bokningar som matchar någon av schemats stylist och dag
+            var bookingDates = schedules.Select(s => s.Day.Date).ToList();
+            var stylistIds = schedules.Select(s => s.StylistId).Distinct().ToList();
+
+            var bookings = await _context.Bookings
+                .Where(b => stylistIds.Contains(b.StylistId) && bookingDates.Contains(b.BookingTime.Date))
+                .ToListAsync();
+
+            // SKapa view model
+            var viewModels = schedules.Select(s => new StylistScheduleWithBookingCountViewModel
+            {
+                Id = s.Id,
+                StylistName = s.Stylist.Firstname,
+                StylistId = s.StylistId,
+                Day = s.Day,
+                StartTime = s.StartTime,
+                EndTime = s.EndTime,
+                BreakStart = s.BreakStart,
+                BreakEnd = s.BreakEnd,
+                BufferTime = s.BufferTime,
+                IsAvailable = s.IsAvailable,
+                BookedCount = bookings.Count(b => b.StylistId == s.StylistId && b.BookingTime.Date == s.Day.Date)
+            }).ToList();
+
+            return View(viewModels);
         }
 
         // GET: StylistSchedule/Details/5

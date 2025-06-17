@@ -1,4 +1,4 @@
-@model IEnumerable<KlippCoApp.Models.StylistSchedule>
+@model IEnumerable<KlippCoApp.Models.StylistScheduleWithBookingCountViewModel>
 
 @using Microsoft.AspNetCore.Identity
 @inject UserManager<ApplicationUser> UserManager
@@ -41,7 +41,7 @@
         <thead>
             <tr>
                 <th>
-                    @Html.DisplayNameFor(model => model.Stylist)
+                    @Html.DisplayNameFor(model => model.StylistName)
                 </th>
                 <th>
                     @Html.DisplayNameFor(model => model.Day)
@@ -55,6 +55,9 @@
                 <th>
                     Rast
                 </th>
+                <th class="text-center">
+                    Antal bokningar
+                </th>
                 <th></th>
             </tr>
         </thead>
@@ -63,9 +66,9 @@
             {
                 <tr>
                     <td>
-                        @if (item.Stylist != null)
+                        @if (item.StylistName != null)
                         {
-                            @Html.DisplayFor(modelItem => item.Stylist.Firstname)
+                            @Html.DisplayFor(modelItem => item.StylistName)
                         }
                         else
                         {
@@ -89,6 +92,10 @@
                         @item.BreakStart.ToString(@"hh\:mm")
                         <span>-</span>
                         @item.BreakEnd.ToString(@"hh\:mm")
+                    </td>
+
+                    <td class="text-center">
+                        @item.BookedCount
                     </td>
 
                     @if (isAdmin || item.StylistId == user.Id)
