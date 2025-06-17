@@ -158,9 +158,35 @@ public class BookingController : Controller
         return View("ConfirmBooking", model);
     }
 
-
-
     // Steg 4: Bekräfta bokning
+    [HttpGet]
+    public IActionResult ConfirmBooking(int serviceId, string stylistId, string bookingTime)
+    {
+        if (!DateTimeOffset.TryParse(bookingTime, out var parsedTimeOffset))
+        {
+            return BadRequest("Ogiltig tid");
+        }
+
+        var stylist = _context.Users.Find(stylistId);
+        var service = _context.Service.Find(serviceId);
+
+        if (stylist == null || service == null)
+        {
+            return NotFound();
+        }
+
+        var model = new BookingViewModel
+        {
+            ServiceId = service.Id,
+            ServiceName = service.Name,
+            StylistId = stylist.Id,
+            StylistName = stylist.Firstname,
+            BookingTime = parsedTimeOffset
+        };
+
+        return View(model);
+    }
+
     [HttpPost]
     [Authorize]
     public async Task<IActionResult> CreateBooking(BookingViewModel model)
