@@ -4,6 +4,17 @@
 
 @{
     ViewData["Title"] = "Granska bokning";
+
+    var returnUrl = Url.Action("ConfirmBooking", "Booking", new {
+        serviceId = Model.ServiceId,
+        stylistId = Model.StylistId,
+        bookingTime = Model.BookingTime.ToString("o")
+    });
+
+    var loginUrl = Url.Page("/Account/Login", new {
+        area = "Identity",
+        returnUrl = returnUrl
+    });
 }
 
 <div class="banner d-flex justify-content-center align-items-center">
@@ -19,9 +30,9 @@
 @if (!SignInManager.IsSignedIn(User))
 {
             <div class="alert alert-warning mt-3">
-                <strong>Du är inte inloggad.</strong><br>
-                <a href="@Url.Action("Login", "Account", new { returnUrl = Url.Action("ConfirmBooking", "Booking", new { serviceId = Model.ServiceId, stylist = Model.StylistId, bookingTime = Model.BookingTime.ToString("o") }) })"
-                    class="btn btn-outline-primary mt-2">
+                <strong>Du är inte inloggad!</strong>
+
+                <a href="@loginUrl">
                     Logga in för att slutföra bokningen
                 </a>
             </div>
@@ -61,19 +72,17 @@
             }
         </div>
 
-@if (!ViewData.ModelState.IsValid)
-{
+        @if (!ViewData.ModelState.IsValid)
+        {
             <div class="alert alert-danger mt-4">
                 <strong>Fel!</strong> Något gick fel vid bokningen. Försök igen.
                 <ul>
-
                     @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
                     {
                         <li>@error.ErrorMessage</li>
                     }
                 </ul>
-        </div>
-                }
-
-        </form>
-        </div>
+            </div>
+        }
+    </form>
+</div>
