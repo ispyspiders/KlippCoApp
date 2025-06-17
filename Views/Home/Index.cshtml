@@ -4,12 +4,11 @@
 
 
 
-    <img src="@Url.Content("~/images/intro_img.jpg")" alt="" class="img-bg">
+<img src="@Url.Content("~/images/intro_img.jpg")" alt="" class="img-bg">
 
-    <div class="img-overlay"></div>
+<div class="img-overlay"></div>
 
-    <div class="content text-center container-fluid">
-        <h1 class="logo">Klipp&Co</h1>
-        <a class="text-danger">Boka tid nu</a>
-    </div>
-
+<div class="content  container-fluid">
+    <h1 class="logo">Klipp&Co</h1>
+    <a asp-controller="Booking" asp-action="SelectService" id="action-link" class="text-white h4">Boka tid nu <img src="@Url.Content("~/images/Arrow.svg")" class="arrow-icon" alt="right arrow"></a>
+</div>

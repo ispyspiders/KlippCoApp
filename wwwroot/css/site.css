@@ -19,6 +19,16 @@
   cursor: not-allowed;
 }
 
+.btn-outline-primary {
+    border-color: var(--bs-primary);
+    color: var(--bs-secondary-color);
+}
+.btn-outline-primary:hover {
+    background-color: var(--bs-primary);
+    border-color: var(--bs-primary);
+    color: #000;
+}
+
 
 .nav-pills .nav-link {
   color: var(--bs-secondary-color);
@@ -137,4 +147,39 @@ a:hover {
 #service-cards .col-md-4 {
   display: block;
   margin-bottom: 20px;
+}
+
+a#action-link {
+  text-decoration: none;
+}
+
+a#action-link:hover {
+  opacity: 90%;
+}
+
+/* Grundposition och smidig övergång */
+.arrow-icon {
+  transition: transform 0.3s ease;
+}
+
+/* Flytta pilen åt höger när länken hovras */
+#action-link:hover .arrow-icon {
+  transform: translateX(5px);
+}
+
+a.navbar-brand {
+  font-family: "Cinzel", 'Times New Roman', Times, serif !important;
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: #fff;
+}
+a.navbar-brand:hover {
+  opacity: 100%;
+}
+
+.alert-warning {
+  background-color: #FFCCAD;
+  border-color: var(--bs-primary);
+  color: #583131;
 }
