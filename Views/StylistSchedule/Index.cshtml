@@ -101,14 +101,17 @@
                     @if (isAdmin || item.StylistId == user.Id)
                     {
                         <td>
+                            <a asp-action="BookingOverview" asp-route-scheduleId="@item.Id" class="">Bokningar</a> |
                             <a asp-action="Edit" asp-route-id="@item.Id" class="">Redigera</a> |
                             <a asp-action="Delete" asp-route-id="@item.Id" class="text-danger">Radera</a>
                         </td>
                     }
                     else
                     {
-                        <td></td>
-                    }    
+                        <td>
+                            <a asp-action="BookingOverview" asp-route-scheduleId="@item.Id" class="">Visa bokningar</a>
+                        </td>
+                    }
                 </tr>
             }
         </tbody>

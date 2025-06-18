@@ -6,8 +6,12 @@ namespace KlippCoApp.Models;
 public class StylistScheduleWithBookingCountViewModel
 {
     public int Id { get; set; }
+
+    [Display(Name = "Stylist")]
     public string StylistName { get; set; }
     public string StylistId { get; set; }
+
+    [Display(Name = "Dag")]
     public DateTime Day { get; set; }
 
     [Display(Name = "Börjar")]

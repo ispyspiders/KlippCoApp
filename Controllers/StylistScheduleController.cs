@@ -283,5 +283,49 @@ namespace KlippCoApp.Controllers
         {
             return _context.StylistSchedule.Any(e => e.Id == id);
         }
+
+        // Vy: Översikt av ett schemas bokningar
+        [HttpGet]
+        public async Task<IActionResult> BookingOverview(int scheduleId)
+        {
+            var schedule = await _context.StylistSchedule
+                .Include(s => s.Stylist)
+                .FirstOrDefaultAsync(s => s.Id == scheduleId);
+
+            if (schedule == null) return NotFound();
+
+            ViewBag.StylistName = $"{schedule.Stylist.Firstname} {schedule.Stylist.Lastname}";
+            ViewBag.ScheduleDate = schedule.Day.ToString("yyyy-MM-dd");
+
+            return View(scheduleId); // Skicka vidare schema-id till vyn
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetBookingsForSchedule(int scheduleId)
+        {
+            var schedule = await _context.StylistSchedule
+            .Include(s => s.Stylist)
+            .FirstOrDefaultAsync(s => s.Id == scheduleId);
+
+            if (schedule == null)
+            {
+                return NotFound();
+            }
+
+            var bookings = await _context.Bookings
+                .Include(b => b.Service)
+                .Include(b => b.Customer)
+                .Where(b => b.StylistId == schedule.StylistId && b.BookingTime.Date == schedule.Day.Date)
+                .ToListAsync();
+
+            var events = bookings.Select(b => new
+            {
+                title = $"{b.Service?.Name ?? "Tjänst"} – {b.Customer?.Firstname ?? "Kund"}",
+                start = b.BookingTime.ToString("yyyy-MM-ddTHH:mm:ss"),
+                end = b.BookingTime.AddMinutes(b.Service?.Duration ?? 0).ToString("yyyy-MM-ddTHH:mm:ss")
+            });
+
+            return new JsonResult(events);
+        }
     }
 }

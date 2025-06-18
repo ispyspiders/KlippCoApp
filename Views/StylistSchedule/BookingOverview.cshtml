@@ -1,0 +1,65 @@
+@model int
+
+@{
+    ViewData["Title"] = "Bokningar för " + @ViewBag.StylistName;
+    Layout = "_AdminLayout";
+    ViewData["BodyClass"] = "admin-page";
+}
+
+<div class="container">
+
+    <h1>@ViewData["Title"]</h1>
+    <div id="calendar" data-schedule-id="@Model"></div>
+
+    <div>
+        <a asp-action="Index">Tillbaka till scheman</a>
+    </div>
+</div>
+
+<!-- Ladda FullCalendar -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var scheduleId = @Model;
+        var scheduleDate = '@ViewBag.ScheduleDate';
+
+        var calendarEl = document.getElementById('calendar');
+        if (!calendarEl) {
+            console.error('Kunde inte hitta #calendar');
+            return;
+        }
+
+        @* const scheduleId = calendarEl.getAttribute('data-schedule-id'); *@
+
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'timeGridDay',
+            initialDate: scheduleDate,
+            timeZone: 'local',
+            minTime: "08:00:00",
+            maxTime: "20:00:00",
+            slotMinTime: "08:00:00",
+            slotMaxTime: "20:00:00",
+            allDaySlot: false,
+            scrollTime: '08:00:00',
+            headerToolbar: {
+                start: 'title',
+                center: '',
+                end: 'prev,next today timeGridDay,timeGridWeek,dayGridMonth'
+            },
+            locale: 'sv',
+            firstDay: 1,
+            eventBackgroundColor: '#395954',
+            eventColor: '#395954',
+            events: function (fetchInfo, successCallback, failureCallback) {
+                fetch(`/StylistSchedule/GetBookingsForSchedule?scheduleId=${scheduleId}`)
+                    .then(response => response.json())
+                    .then(data => successCallback(data))
+                    .catch(error => failureCallback(error));
+            },
+        });
+
+        calendar.render();
+    });
+</script>
