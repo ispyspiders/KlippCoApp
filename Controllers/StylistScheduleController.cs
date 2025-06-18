@@ -317,12 +317,17 @@ namespace KlippCoApp.Controllers
                 .Include(b => b.Customer)
                 .Where(b => b.StylistId == schedule.StylistId && b.BookingTime.Date == schedule.Day.Date)
                 .ToListAsync();
-
+            
             var events = bookings.Select(b => new
             {
+                id = b.Id,
                 title = $"{b.Service?.Name ?? "Tjänst"} – {b.Customer?.Firstname ?? "Kund"}",
+                service = b.Service?.Name ?? "Tjänst",
+                customerName = b.Customer != null ? $"{b.Customer.Firstname} {b.Customer.Lastname}" : "Kund",
+                customerEmail = b.Customer?.Email ?? "E-post saknas",
                 start = b.BookingTime.ToString("yyyy-MM-ddTHH:mm:ss"),
-                end = b.BookingTime.AddMinutes(b.Service?.Duration ?? 0).ToString("yyyy-MM-ddTHH:mm:ss")
+                end = b.BookingTime.AddMinutes(b.Service?.Duration ?? 0).ToString("yyyy-MM-ddTHH:mm:ss"),
+                bookingId = b.Id
             });
 
             return new JsonResult(events);

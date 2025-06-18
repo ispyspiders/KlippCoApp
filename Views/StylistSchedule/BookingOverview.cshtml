@@ -14,52 +14,113 @@
     <div>
         <a asp-action="Index">Tillbaka till scheman</a>
     </div>
-</div>
 
-<!-- Ladda FullCalendar -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        var scheduleId = @Model;
-        var scheduleDate = '@ViewBag.ScheduleDate';
+    <!-- Anti-forgery token -->
+@Html.AntiForgeryToken()
 
-        var calendarEl = document.getElementById('calendar');
-        if (!calendarEl) {
-            console.error('Kunde inte hitta #calendar');
-            return;
-        }
 
-        @* const scheduleId = calendarEl.getAttribute('data-schedule-id'); *@
+    <!-- Modal -->
+    <div class="modal fade" id="bookingDetailsModal" tabindex="-1" aria-labelledby="bookingDetailsModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="bookingDetailsModalLabel">Bokningsinformation</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Stäng"></button>
+                </div>
+                <div class="modal-body">
+                    <p><strong>Tjänst:</strong> <span id="modalService"></span></p>
+                    <p><strong>Kund:</strong> <span id="modalCustomer"></span></p>
+                    <p><strong>E-post:</strong> <span id="modalEmail"></span></p>
+                    <p><strong>Tid:</strong> <span id="modalTime"></span></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" id="confirmDeleteBtn" class="btn btn-danger">Avboka</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Stäng</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
-        var calendar = new FullCalendar.Calendar(calendarEl, {
-            initialView: 'timeGridDay',
-            initialDate: scheduleDate,
-            timeZone: 'local',
-            minTime: "08:00:00",
-            maxTime: "20:00:00",
-            slotMinTime: "08:00:00",
-            slotMaxTime: "20:00:00",
-            allDaySlot: false,
-            scrollTime: '08:00:00',
-            headerToolbar: {
-                start: 'title',
-                center: '',
-                end: 'prev,next today timeGridDay,timeGridWeek,dayGridMonth'
-            },
-            locale: 'sv',
-            firstDay: 1,
-            eventBackgroundColor: '#395954',
-            eventColor: '#395954',
-            events: function (fetchInfo, successCallback, failureCallback) {
-                fetch(`/StylistSchedule/GetBookingsForSchedule?scheduleId=${scheduleId}`)
-                    .then(response => response.json())
-                    .then(data => successCallback(data))
-                    .catch(error => failureCallback(error));
-            },
+    <!-- Ladda FullCalendar -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var scheduleId = @Model;
+            var scheduleDate = '@ViewBag.ScheduleDate';
+            var token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+            var currentBookingId = null;
+
+            var calendarEl = document.getElementById('calendar');
+            if (!calendarEl) {
+                console.error('Kunde inte hitta #calendar');
+                return;
+            }
+
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'timeGridDay',
+                initialDate: scheduleDate,
+                timeZone: 'local',
+                slotMinTime: "08:00:00",
+                slotMaxTime: "20:00:00",
+                allDaySlot: false,
+                scrollTime: '08:00:00',
+                headerToolbar: {
+                    start: 'title',
+                    center: '',
+                    end: 'prev,next today timeGridDay,timeGridWeek,dayGridMonth'
+                },
+                locale: 'sv',
+                firstDay: 1,
+                eventBackgroundColor: '#395954',
+                eventColor: '#395954',
+                events: function (fetchInfo, successCallback, failureCallback) {
+                    fetch(`/StylistSchedule/GetBookingsForSchedule?scheduleId=${scheduleId}`)
+                        .then(response => response.json())
+                        .then(data => successCallback(data))
+                        .catch(error => failureCallback(error));
+                },
+                eventClick: function (info) {
+                    const event = info.event;
+                    currentBookingId = event.extendedProps.bookingId;
+
+                    @* Visa detaljer i modal *@
+                        document.getElementById("modalService").textContent = event.extendedProps.service;
+                    document.getElementById("modalCustomer").textContent = event.extendedProps.customerName;
+                    document.getElementById("modalEmail").textContent = event.extendedProps.customerEmail;
+                    document.getElementById("modalTime").textContent = moment(event.start).format("YYYY-MM-DD HH:mm");
+
+
+                    // Visa modalen med Bootstrap
+                    const bookingModal = new bootstrap.Modal(document.getElementById('bookingDetailsModal'));
+                    bookingModal.show();
+                }
+            });
+
+            calendar.render();
+
+            document.getElementById("confirmDeleteBtn").addEventListener("click", function () {
+                if (!currentBookingId) return;
+                if (!confirm("Är du säker på att du vill radera denna bokning?")) return;
+
+                fetch(`/Booking/DeleteBooking/${currentBookingId}`, {
+                    method: "POST",
+                    headers: {
+                        'RequestVerificationToken': token
+                    }
+                })
+                    .then(response => {
+                        if (response.ok) {
+                            alert("Bokningen raderades.");
+                            calendar.refetchEvents();
+                            bootstrap.Modal.getInstance(document.getElementById('bookingDetailsModal')).hide();
+                        } else {
+                            alert("Kunde inte radera bokningen.");
+                        }
+                    });
+            });
         });
-
-        calendar.render();
-    });
-</script>
+    </script>
