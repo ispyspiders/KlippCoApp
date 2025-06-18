@@ -1,0 +1,78 @@
+@model MyBookingsViewModel
+@using KlippCoApp.Helpers
+
+@{
+    ViewData["Title"] = "Mina bokningar";
+    ViewData["ActivePage"] = ManageNavPages.MyBookings;
+    Layout = "/Areas/Identity/Pages/Account/Manage/_Layout.cshtml";
+}
+
+
+<h2>Mina bokningar (som kund)</h2>
+
+@if (!Model.MyBookings.Any())
+{
+    <p>Du har inga bokningar som kund.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Tjänst</th>
+                <th>Datum & Tid</th>
+                <th>Frisör</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var b in Model.MyBookings)
+            {
+                <tr>
+                    <td>@b.Service?.Name</td>
+                    <td>@b.BookingTime.ToString("yyyy-MM-dd HH:mm")</td>
+                    <td>@(b.Stylist?.Firstname + " " + b.Stylist?.Lastname)</td>
+                    <td>
+                        <a asp-action="Delete" asp-route-id="@b.Id" class="btn btn-danger btn-sm">Avboka</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@if (User.IsInRole("Stylist") || User.IsInRole("Admin"))
+{
+    <h2>Bokat hos mig (som stylist/frisör)</h2>
+
+    @if (!Model.BookingsAsStylist.Any())
+    {
+        <p>Inga bokningar inbokade hos dig.</p>
+    }
+    else
+    {
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Tjänst</th>
+                    <th>Datum & Tid</th>
+                    <th>Kund</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var b in Model.BookingsAsStylist)
+                {
+                    <tr>
+                        <td>@b.Service?.Name</td>
+                        <td>@b.BookingTime.ToString("yyyy-MM-dd HH:mm")</td>
+                        <td>@(b.Customer?.Firstname + " " + b.Customer?.Lastname)</td>
+                        <td>
+                            <a asp-action="Delete" asp-route-id="@b.Id" class="btn btn-danger btn-sm">Avboka</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+}

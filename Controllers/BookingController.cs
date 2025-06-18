@@ -255,4 +255,41 @@ public class BookingController : Controller
 
         return Ok();
     }
+
+    [Authorize]
+    public async Task<IActionResult> MyBookings()
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null) return Challenge();
+
+        // Bokningar där användaren är kund
+        var myBookings = await _context.Bookings
+        .Include(b => b.Service)
+        .Include(b => b.Stylist)
+        .Include(b => b.Customer)
+        .Where(b => b.CustomerId == user.Id)
+        .OrderByDescending(b => b.BookingTime)
+        .ToListAsync();
+
+        // Bokningar där användaren är stylist
+        List<Booking> bookingsAsStylist = new List<Booking>();
+        if (User.IsInRole("Stylist") || User.IsInRole("Admin"))
+        {
+            bookingsAsStylist = await _context.Bookings
+            .Include(b => b.Service)
+            .Include(b => b.Stylist)
+            .Include(b => b.Customer)
+            .Where(b => b.StylistId == user.Id)
+            .OrderByDescending(b => b.BookingTime)
+            .ToListAsync();
+        }
+
+        var model = new MyBookingsViewModel
+        {
+            MyBookings = myBookings,
+            BookingsAsStylist = bookingsAsStylist
+        };
+
+        return View(model);
+    }
 }

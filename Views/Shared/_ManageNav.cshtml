@@ -1,0 +1,42 @@
+@using Microsoft.AspNetCore.Identity
+@using KlippCoApp.Models
+@using KlippCoApp.Helpers
+@inject SignInManager<ApplicationUser> SignInManager
+@{
+    var hasExternalLogins = (await SignInManager.GetExternalAuthenticationSchemesAsync()).Any();
+}
+
+<ul class="nav nav-pills flex-column">
+    <li class="nav-item">
+        <a class="nav-link @ManageNavPages.IndexNavClass(ViewContext)" asp-area="Identity"
+            asp-page="/Account/Manage/Index">Profil</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link @ManageNavPages.MyBookingsNavClass(ViewContext)" asp-controller="Booking"
+            asp-action="MyBookings">Mina bokningar</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link @ManageNavPages.EmailNavClass(ViewContext)" asp-area="Identity"
+            asp-page="/Account/Manage/Email">E-post</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link @ManageNavPages.ChangePasswordNavClass(ViewContext)" asp-area="Identity"
+            asp-page="/Account/Manage/ChangePassword">Lösenord</a>
+    </li>
+    @if (hasExternalLogins)
+    {
+        <li class="nav-item">
+            <a class="nav-link @ManageNavPages.ExternalLoginsNavClass(ViewContext)" asp-area="Identity"
+                asp-page="/Account/Manage/ExternalLogins">Tredjepartsinloggning</a>
+        </li>
+    }
+    <li class="nav-item">
+        <a class="nav-link @ManageNavPages.TwoFactorAuthenticationNavClass(ViewContext)" asp-area="Identity"
+            asp-page="/Account/Manage/TwoFactorAuthentication">Tvåfaktorsautentisering</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link @ManageNavPages.PersonalDataNavClass(ViewContext)" asp-area="Identity"
+            asp-page="/Account/Manage/PersonalData">Personlig data</a>
+    </li>
+
+</ul>
