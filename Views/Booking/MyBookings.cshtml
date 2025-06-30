@@ -8,42 +8,59 @@
 }
 
 
-<h2>Mina bokningar (som kund)</h2>
+<h2>Mina bokningar</h2>
+@Html.AntiForgeryToken()
 
+
+<h3 class="mt-4">Bokade tider</h3>
 @if (!Model.MyBookings.Any())
 {
     <p>Du har inga bokningar som kund.</p>
 }
 else
 {
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Tjänst</th>
-                <th>Datum & Tid</th>
-                <th>Frisör</th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var b in Model.MyBookings)
-            {
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
                 <tr>
-                    <td>@b.Service?.Name</td>
-                    <td>@b.BookingTime.ToString("yyyy-MM-dd HH:mm")</td>
-                    <td>@(b.Stylist?.Firstname + " " + b.Stylist?.Lastname)</td>
-                    <td>
-                        <a asp-action="Delete" asp-route-id="@b.Id" class="btn btn-danger btn-sm">Avboka</a>
-                    </td>
+                    <th>Tjänst</th>
+                    <th>Datum & Tid</th>
+                    <th>Frisör</th>
+                    <th></th>
                 </tr>
-            }
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                @foreach (var b in Model.MyBookings)
+                {
+                    var isPast = b.BookingTime < DateTime.Now;
+                    var rowClass = isPast ? "table-secondary" : "";
+                    <tr class="@rowClass">
+                        <td>@b.Service?.Name</td>
+                        <td>@b.BookingTime.ToString("yyyy-MM-dd HH:mm")</td>
+                        <td>@(b.Stylist?.Firstname + " " + b.Stylist?.Lastname)</td>
+                        <td class="text-end">
+                            @if (!isPast)
+                            {
+                                <button type="button" class="btn btn-danger btn-sm open-cancel-modal" data-bs-toggle="modal"
+                                    data-bs-target="#cancelModal" data-booking-id="@b.Id" data-service="@b.Service?.Name"
+                                    data-stylist="@b.Stylist?.Firstname"
+                                    data-time="@b.BookingTime.ToString("dddd d'/'M, 'kl' HH:mm", new System.Globalization.CultureInfo("sv-SE"))"
+                                    data-context="myBookings">
+                                    Avboka
+                                </button>
+
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
 }
 
 @if (User.IsInRole("Stylist") || User.IsInRole("Admin"))
 {
-    <h2>Bokat hos mig (som stylist/frisör)</h2>
+    <h3 class="mt-4">Bokat hos mig</h3>
 
     @if (!Model.BookingsAsStylist.Any())
     {
@@ -51,28 +68,123 @@ else
     }
     else
     {
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>Tjänst</th>
-                    <th>Datum & Tid</th>
-                    <th>Kund</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var b in Model.BookingsAsStylist)
-                {
+        <div class="table-responsive">
+
+            <table class="table">
+                <thead>
                     <tr>
-                        <td>@b.Service?.Name</td>
-                        <td>@b.BookingTime.ToString("yyyy-MM-dd HH:mm")</td>
-                        <td>@(b.Customer?.Firstname + " " + b.Customer?.Lastname)</td>
-                        <td>
-                            <a asp-action="Delete" asp-route-id="@b.Id" class="btn btn-danger btn-sm">Avboka</a>
-                        </td>
+                        <th>Tjänst</th>
+                        <th>Datum & Tid</th>
+                        <th>Kund</th>
+                        <th></th>
                     </tr>
-                }
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    @foreach (var b in Model.BookingsAsStylist)
+                    {
+                        var isPast = b.BookingTime < DateTime.Now;
+                        var rowClass = isPast ? "table-secondary" : "";
+                        <tr class="@rowClass">
+                            <td>@b.Service?.Name</td>
+                            <td>@b.BookingTime.ToString("yyyy-MM-dd HH:mm")</td>
+                            <td>@(b.Customer?.Firstname + " " + b.Customer?.Lastname)</td>
+                            <td class="text-end">
+                                @if (!isPast)
+                                {
+                                    <button type="button" class="btn btn-danger btn-sm open-cancel-modal" data-bs-toggle="modal"
+                                        data-bs-target="#cancelModal" data-booking-id="@b.Id" data-customer="@b.Customer?.Firstname"
+                                        data-service="@b.Service?.Name"
+                                        data-time="@b.BookingTime.ToString("dddd d'/'M, 'kl' HH:mm", new System.Globalization.CultureInfo("sv-SE"))"
+                                        data-context="bookedAsStylist">
+                                        Avboka
+                                    </button>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
     }
 }
+
+@* Modal för avbokning (dynamisk för både kund och stylist) *@
+<div class="modal fade" id="cancelModal" tabindex="-1" aria-labelledby="cancelModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="cancelModalLabel">Bekräfta avbokning</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Stäng"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Innehåll fylls i av JS -->
+                <p id="modalCancelText"></p>
+            </div>
+            <div class="modal-footer">
+                <input type="hidden" id="modalBookingId" />
+                <button type="button" class="btn btn-danger btn-confirm-cancel">Avboka</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Stäng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    @* Öppna modal för avbokning *@
+        document.addEventListener('DOMContentLoaded', function () {
+            const cancelModal = document.getElementById('cancelModal');
+            const modalCancelText = document.getElementById('modalCancelText');
+            const modalBookingIdInput = document.getElementById('modalBookingId');
+            const confirmCancelBtn = document.querySelector('.btn-confirm-cancel');
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+            document.querySelectorAll('.open-cancel-modal').forEach(button => {
+                button.addEventListener('click', function () {
+                    const bookingId = this.dataset.bookingId;
+                    const service = this.dataset.service;
+                    const time = this.dataset.time;
+                    const context = this.dataset.context;
+
+                    let modalText = '';
+
+                    if (context === 'myBookings') {
+                        const stylist = this.dataset.stylist;
+                        modalText = `Är du säker på att du vill avboka ${service} hos ${stylist} ${time}?`;
+
+                    } else if (context === "bookedAsStylist") {
+                        const customer = this.dataset.customer;
+                        modalText = `Är du säker på att du vill avboka ${customer}s ${service} ${time}?`;
+                    }
+
+                    modalCancelText.textContent = modalText;
+                    modalBookingIdInput.value = bookingId;
+                });
+            });
+
+            @* Avboka tid *@
+                confirmCancelBtn.addEventListener('click', function () {
+                    const bookingId = modalBookingIdInput.value;
+                    if (!bookingId) return;
+
+                    fetch(`/Booking/DeleteBooking/${bookingId}`, {
+                        method: 'POST',
+                        headers: {
+                            'RequestVerificationToken': token,
+                            'Content-Type': 'application/json'
+                        }
+                    })
+                        .then(response => {
+                            if (response.ok) {
+                                alert("Tiden är avbokad.");
+                                bootstrap.Modal.getInstance(cancelModal).hide(); // Göm modal
+                                window.location.reload(); // ladda om sida för att uppdatera bokningar
+                            } else if (response.status === 403) {
+                                alert("Du har inte behörighet för att avboka denna tid. Vänligen kontakta salongen.")
+                            } else {
+                                alert("Något gick fel vid avbokningen.");
+                            }
+                        })
+                        .catch(() => alert("Något gick fel vid avbokningen."));
+                })
+        })
+</script>

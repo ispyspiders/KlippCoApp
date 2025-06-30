@@ -242,18 +242,37 @@ public class BookingController : Controller
     }
 
     [HttpPost]
-    [Authorize(Roles = "Admin,Stylist")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteBooking(int id)
     {
-        var booking = await _context.Bookings.FindAsync(id);
+        var user = await _userManager.GetUserAsync(User);
+
+        var booking = await _context.Bookings
+            .Include(b => b.Customer)
+            .Include(b => b.Stylist)
+            .FirstOrDefaultAsync(b => b.Id == id);
 
         if (booking == null) return NotFound();
+
+        var isCustomer = booking.CustomerId == user.Id;
+        var isStylist = booking.StylistId == user.Id;
+        var isAdmin = await _userManager.IsInRoleAsync(user, "Admin");
+        var isStylistRole = await _userManager.IsInRoleAsync(user, "Stylist");
+
+        // Endast kund, stylist eller admin får avboka
+        if (!isCustomer && !isStylist && !isAdmin) return Forbid();
+        // Kund får inte avboka andras bokningar
+        if (isCustomer && booking.CustomerId != user.Id) return Forbid();
+        // 24h-spärr för kunders avbokningar
+        if (isCustomer && booking.BookingTime <= DateTime.Now.AddHours(24))
+        {
+            return BadRequest("Du kan inte avboka mindre än 24 timmar innan bokningen.");
+        }
 
         _context.Bookings.Remove(booking);
         await _context.SaveChangesAsync();
 
-        return Ok();
+        return Json(new{success = true, message = "Tiden har avbokats."});
     }
 
     [Authorize]

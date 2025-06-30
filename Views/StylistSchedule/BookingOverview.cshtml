@@ -36,7 +36,7 @@
                     <p><strong>Tid:</strong> <span id="modalTime"></span></p>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" id="confirmDeleteBtn" class="btn btn-danger">Avboka</button>
+                    <button type="button" id="confirmDeleteBtn" class="btn btn-danger d-none">Avboka</button>
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Stäng</button>
                 </div>
             </div>
@@ -93,6 +93,15 @@
                     document.getElementById("modalEmail").textContent = event.extendedProps.customerEmail;
                     document.getElementById("modalTime").textContent = moment(event.start).format("YYYY-MM-DD HH:mm");
 
+                    const now = new Date();
+                    const bookingTime = new Date(event.start);
+                    const confirmBtn = document.getElementById('confirmDeleteBtn');
+
+                    if(bookingTime <= now) {
+                        confirmBtn.classList.add("d-none");
+                    } else {
+                        confirmBtn.classList.remove("d-none");
+                    }
 
                     // Visa modalen med Bootstrap
                     const bookingModal = new bootstrap.Modal(document.getElementById('bookingDetailsModal'));
@@ -117,8 +126,13 @@
                             alert("Bokningen raderades.");
                             calendar.refetchEvents();
                             bootstrap.Modal.getInstance(document.getElementById('bookingDetailsModal')).hide();
-                        } else {
-                            alert("Kunde inte radera bokningen.");
+                        } else if (response.status === 400) {
+                            response.text().then(msg => alert(msg));
+                        } else if (response.status === 403) {
+                            alert("Du har inte behörighet att avboka denna tid.");
+                        }
+                        else {
+                            alert("Något gick fel vid avbokningen.");
                         }
                     });
             });
