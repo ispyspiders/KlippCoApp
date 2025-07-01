@@ -41,6 +41,9 @@
                             <a class="nav-link text-light" asp-area="" asp-controller="Service" asp-action="Index">Våra
                                 tjänster</a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-light" asp-area="" asp-controller="Booking" asp-action="SelectService">Boka</a>
+                        </li>
                         @* Om en användare är inloggad, kolla om denne är stylist eller admin och visa i så fall administrationsmeny *@
                         @if (SignInManager.IsSignedIn(User))
                         {
@@ -93,9 +96,8 @@
             {
                 <div class="d-inline-flex flex-row justify-content-center align-items-center">
                     <h3 class="h6 m-4">Klipp&Co</h3>
-                    <p class="m-4">Tel: 0910-123 45
-                        Storgatan 1, 123 45 Staden
-                    </p>
+                    <p class="m-4">Storgatan 1, 123 45 Staden</p>
+                    <p class="m-4">Tel: 0910-123 45</p>
                 </div>
             }
         </div>
