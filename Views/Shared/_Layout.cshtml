@@ -8,11 +8,14 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - KlippCoApp</title>
+    <title>@ViewData["Title"] - Klipp&Co</title>
     <script type="importmap"></script>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/KlippCoApp.styles.css" asp-append-version="true" />
+    
+    <link rel="icon" type="image/x-icon" href="~/favicon.svg">
+
 
     @* Google fonts: Cinzel & Inter *@
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -42,7 +45,8 @@
                                 tjänster</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-light" asp-area="" asp-controller="Booking" asp-action="SelectService">Boka</a>
+                            <a class="nav-link text-light" asp-area="" asp-controller="Booking"
+                                asp-action="SelectService">Boka</a>
                         </li>
                         @* Om en användare är inloggad, kolla om denne är stylist eller admin och visa i så fall administrationsmeny *@
                         @if (SignInManager.IsSignedIn(User))
