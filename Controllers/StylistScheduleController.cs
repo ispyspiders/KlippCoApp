@@ -315,7 +315,7 @@ namespace KlippCoApp.Controllers
             var bookings = await _context.Bookings
                 .Include(b => b.Service)
                 .Include(b => b.Customer)
-                .Where(b => b.StylistId == schedule.StylistId && b.BookingTime.Date == schedule.Day.Date)
+                .Where(b => b.StylistId == schedule.StylistId)
                 .ToListAsync();
             
             var events = bookings.Select(b => new
