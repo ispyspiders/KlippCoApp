@@ -15,10 +15,10 @@
 <div class="container">
     <div class="mt-4 bg-light rounded p-4">
         <h2>Bokningsdetaljer</h2>
-        <p>Tjänst: @Model.ServiceName</p>
-        <p>Stylist: @Model.StylistName</p>
-        <p>Tid: @Model.BookingTime.ToString("HH:mm")</p>
-        <p>Datum: @Model.BookingTime.ToString("yyyy-MM-dd")</p>
+        <p><strong>Tjänst:</strong> @Model.ServiceName</p>
+        <p><strong>Stylist:</strong> @Model.StylistName</p>
+        <p><strong>Tid:</strong> @Model.BookingTime.ToString("HH:mm")</p>
+        <p><strong>Datum:</strong> @Model.BookingTime.ToString("yyyy-MM-dd")</p>
 
         <a asp-action="SelectService" class="btn btn-primary me-2">Boka ny tid</a>
         <a asp-controller="Home" asp-action="Index" class="btn btn-secondary me-2">Till startsidan</a>

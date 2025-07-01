@@ -5,13 +5,20 @@
 @{
     ViewData["Title"] = "Granska bokning";
 
-    var returnUrl = Url.Action("ConfirmBooking", "Booking", new {
+    var returnUrl = Url.Action("ConfirmBooking", "Booking", new
+    {
         serviceId = Model.ServiceId,
         stylistId = Model.StylistId,
         bookingTime = Model.BookingTime.ToString("o")
     });
 
-    var loginUrl = Url.Page("/Account/Login", new {
+    var loginUrl = Url.Page("/Account/Login", new
+    {
+        area = "Identity",
+        returnUrl = returnUrl
+    });
+
+    var registerUrl = Url.Page("/Account/Register", new {
         area = "Identity",
         returnUrl = returnUrl
     });
@@ -27,24 +34,14 @@
 <div class="container">
     <form asp-action="CreateBooking" method="post" class="mt-4 bg-light rounded p-4">
         <h2>4. Granska bokning</h2>
-@if (!SignInManager.IsSignedIn(User))
-{
-            <div class="alert alert-warning mt-3">
-                <strong>Du är inte inloggad!</strong>
-
-                <a href="@loginUrl">
-                    Logga in för att slutföra bokningen
-                </a>
-            </div>
-}
-        <p><strong>Tjänst:</strong> @Model.ServiceName</p>
-        <p><strong>Stylist:</strong> @Model.StylistName</p>
-        <p><strong>Tid:</strong> @Model.BookingTime.LocalDateTime.ToString("yyyy-MM-dd HH:mm")</p>
-
         <div class="progress mb-3">
             <div class="progress-bar bg-success" role="progressbar" style="width: 95%" aria-valuenow="95"
                 aria-valuemin="0" aria-valuemax="100"></div>
         </div>
+
+        <p><strong>Tjänst:</strong> @Model.ServiceName</p>
+        <p><strong>Stylist:</strong> @Model.StylistName</p>
+        <p><strong>Tid:</strong> @Model.BookingTime.LocalDateTime.ToString("yyyy-MM-dd HH:mm")</p>
 
         <!-- Hidden fields to pass necessary data for the booking -->
         <input type="hidden" asp-for="ServiceId" />
@@ -53,11 +50,16 @@
         <input type="hidden" asp-for="StylistName" />
         <input type="hidden" asp-for="BookingTime" />
 
+        @* User not logged in *@
+        @if (!SignInManager.IsSignedIn(User))
+        {
+            <p><span class="text-danger mt-3">Du måste vara inloggad för att slutföra bokningen.</span> 
+            <a href="@loginUrl">Logga in</a> eller <a href="@registerUrl">skapa ett konto</a>.
+            </p>
+        }
+
         <div class="form-group mt-4">
-            <a 
-                asp-action="SelectTime" 
-                asp-route-serviceId="@Model.ServiceId"
-                asp-route-stylistId="@Model.StylistId"
+            <a asp-action="SelectTime" asp-route-serviceId="@Model.ServiceId" asp-route-stylistId="@Model.StylistId"
                 class="btn btn-secondary me-2">
                 Tillbaka
             </a>
@@ -65,10 +67,6 @@
             @if (User.Identity.IsAuthenticated)
             {
                 <button type="submit" class="btn btn-primary">Bekräfta bokning</button>
-            }
-            else
-            {
-                <p class="text-danger mt-3">Du måste vara inloggad för att slutföra bokningen.</p>
             }
         </div>
 
