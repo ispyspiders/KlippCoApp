@@ -95,22 +95,29 @@
                     </td>
 
                     <td class="text-center">
-                        @item.BookedCount
+                        @(item.BookedCount > 0 ? item.BookedCount : "-")
                     </td>
 
                     @if (isAdmin || item.StylistId == user.Id)
                     {
                         <td>
-                            <a asp-action="BookingOverview" asp-route-scheduleId="@item.Id" class="">Bokningar</a> |
+                            @if(item.BookedCount > 0) {
+                                <a asp-action="BookingOverview" asp-route-scheduleId="@item.Id" class="">Bokningar</a> <span>|</span>
+                            }
                             <a asp-action="Edit" asp-route-id="@item.Id" class="">Redigera</a> |
                             <a asp-action="Delete" asp-route-id="@item.Id" class="text-danger">Radera</a>
                         </td>
                     }
                     else
                     {
-                        <td>
-                            <a asp-action="BookingOverview" asp-route-scheduleId="@item.Id" class="">Visa bokningar</a>
-                        </td>
+                        @if (item.BookedCount > 0)
+                        {
+                            <td>
+                                <a asp-action="BookingOverview" asp-route-scheduleId="@item.Id" class="">Bokningar</a>
+                            </td>
+                        } else {
+                            <td></td>
+                        }
                     }
                 </tr>
             }
