@@ -5,6 +5,7 @@ using KlippCoApp.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 
 public class BookingController : Controller
@@ -41,6 +42,66 @@ public class BookingController : Controller
         return stylists;
     }
 
+    [Authorize(Roles = "Admin,Stylist")]
+    public async Task<IActionResult> AllBookings(string stylistId, string searchCustomerName, DateTime? date)
+    {
+        var query = _context.Bookings
+        .Include(b => b.Service)
+        .Include(b => b.Customer)
+        .Include(b => b.Stylist)
+        .AsQueryable();
+
+        // Hämta alla stylister
+        var stylistUsers = await _userManager.GetUsersInRoleAsync("Stylist");
+
+        query = query.Where(b => b.Customer != null);
+
+        if (!string.IsNullOrEmpty(stylistId)) query = query.Where(b => b.StylistId == stylistId);
+
+        if (date.HasValue) query = query.Where(b => b.BookingTime.Date == date.Value.Date);
+
+        var bookingList = await query
+        .OrderByDescending(b => b.BookingTime)
+        .ToListAsync();
+
+        // Filtrera på kundnamn i minnet
+        if (!string.IsNullOrEmpty(searchCustomerName))
+        {
+            string loweredCustomerName = searchCustomerName.ToLower();
+            bookingList = bookingList
+                .Where(b =>
+                    (!string.IsNullOrEmpty(b.Customer.Firstname) && b.Customer.Firstname.ToLower().Contains(loweredCustomerName)) ||
+                    (!string.IsNullOrEmpty(b.Customer.Lastname) && b.Customer.Lastname.ToLower().Contains(loweredCustomerName))
+                )
+                .ToList();
+        }
+
+
+        var viewModel = new BookingOverviewViewModel
+        {
+            SelectedStylistId = stylistId,
+            SearchCustomerName = searchCustomerName,
+            SelectedDate = date,
+            Stylists = stylistUsers.Select(s => new SelectListItem
+            {
+                Value = s.Id,
+                Text = $"{s.Firstname} {s.Lastname}"
+            }).ToList(),
+            Bookings = bookingList
+            .Select(b => new BookingRowViewModel
+            {
+                Id = b.Id,
+                StylistName = $"{b.Stylist.Firstname} {b.Stylist.Lastname}",
+                CustomerName = $"{b.Customer.Firstname} {b.Customer.Lastname}",
+                ServiceName = b.Service.Name,
+                StartTime = b.BookingTime,
+                EndTime = b.BookingTime.AddMinutes(b.Service.Duration)
+            })
+            .ToList()
+        };
+
+        return View(viewModel);
+    }
 
     // Steg 1: Välj tjänst
     [HttpGet]
@@ -272,7 +333,7 @@ public class BookingController : Controller
         _context.Bookings.Remove(booking);
         await _context.SaveChangesAsync();
 
-        return Json(new{success = true, message = "Tiden har avbokats."});
+        return Json(new { success = true, message = "Tiden har avbokats." });
     }
 
     [Authorize]

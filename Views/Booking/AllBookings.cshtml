@@ -1,0 +1,63 @@
+@model BookingOverviewViewModel
+
+@{
+    ViewData["Title"] = "Bokningsöversikt";
+    Layout = "_AdminLayout";
+    ViewData["BodyClass"] = "admin-page";
+}
+
+<div class="container">
+    <h1>@ViewData["Title"]</h1>
+
+    <form method="get" asp-action="AllBookings" asp-controller="Booking" class="row g-3 mb-4">
+        <div class="col-md-3">
+            <label for="stylistId">Stylist</label>
+            <select name="stylistId" id="stylistId" asp-for="SelectedStylistId" asp-items="Model.Stylists" class="form-select">
+                <option value="">Alla</option>
+            </select>
+     
+        </div>
+        <div class="col-md-3">
+            <label for="">Kundnamn</label>
+            <input type="text" asp-for="SearchCustomerName" class="form-control">
+        </div>
+        <div class="col-md-3">
+            <label>Datum</label>
+            <input type="date" name="date" id="date" asp-for="SelectedDate" class="form-control">
+        </div>
+
+        <div class="col-md-3 d-flex align-items-end">
+            <button type="submit" class="btn btn-primary">Filtrera</button>
+
+            <a asp-action="AllBookings" class="btn btn-secondary ms-2">Rensa</a>
+        </div>
+    </form>
+
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>Datum</th>
+                <th>Tid</th>
+                <th>Stylist</th>
+                <th>Kund</th>
+                <th>Tjänst</th>
+                <th></th>
+            </tr>
+            <tbody>
+                @foreach (var booking in Model.Bookings){
+                    <tr>
+                        <td>@booking.StartTime.ToString("yyyy-MM-dd")</td>
+                        <td>@booking.StartTime.ToString("HH:mm")</td>
+                        <td>@booking.StylistName</td>
+                        <td>@booking.CustomerName</td>
+                        <td>@booking.ServiceName</td>
+                        <td>
+
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </thead>
+
+    </table>
+</div>
