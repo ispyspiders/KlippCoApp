@@ -18,7 +18,8 @@
         returnUrl = returnUrl
     });
 
-    var registerUrl = Url.Page("/Account/Register", new {
+    var registerUrl = Url.Page("/Account/Register", new
+    {
         area = "Identity",
         returnUrl = returnUrl
     });
@@ -53,21 +54,26 @@
         @* User not logged in *@
         @if (!SignInManager.IsSignedIn(User))
         {
-            <p><span class="text-danger mt-3">Du måste vara inloggad för att slutföra bokningen.</span> 
-            <a href="@loginUrl">Logga in</a> eller <a href="@registerUrl">skapa ett konto</a>.
+            <p><span class="text-danger mt-3">Du måste vara inloggad för att slutföra bokningen.</span>
+                <a href="@loginUrl">Logga in</a> eller <a href="@registerUrl">skapa ett konto</a>.
             </p>
         }
 
-        <div class="form-group mt-4">
-            <a asp-action="SelectTime" asp-route-serviceId="@Model.ServiceId" asp-route-stylistId="@Model.StylistId"
-                class="btn btn-secondary me-2">
-                Tillbaka
-            </a>
+        <div class="form-group mt-4 d-flex justify-content-between">
+            <div>
+
+                <a asp-action="SelectTime" asp-route-serviceId="@Model.ServiceId" asp-route-stylistId="@Model.StylistId"
+                    class="btn btn-secondary me-2">
+                    Tillbaka
+                </a>
+
+                @if (User.Identity.IsAuthenticated)
+                {
+                    <button type="submit" class="btn btn-primary">Bekräfta bokning</button>
+                }
+            </div>
+
             <a asp-action="SelectService" class="btn btn-danger me-2">Avbryt</a>
-            @if (User.Identity.IsAuthenticated)
-            {
-                <button type="submit" class="btn btn-primary">Bekräfta bokning</button>
-            }
         </div>
 
         @if (!ViewData.ModelState.IsValid)
