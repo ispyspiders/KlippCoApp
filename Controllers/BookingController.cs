@@ -185,10 +185,18 @@ public class BookingController : Controller
                 });
             }
         }
+
+        var model = new BookingViewModel
+        {
+            ServiceId = serviceId,
+            ServiceName = service.Name,
+            StylistId = stylistId
+        };
+
         ViewBag.Events = events;
         ViewBag.Service = service;
         ViewBag.ServiceId = service.Id;
-        return View();
+        return View(model);
     }
 
     [HttpPost]
@@ -213,7 +221,7 @@ public class BookingController : Controller
             ServiceName = service.Name,
             StylistId = stylistId,
             StylistName = stylist.Firstname,
-            BookingTime = parsedOffsetTime // ← använd direkt
+            BookingTime = parsedOffsetTime
         };
 
         return View("ConfirmBooking", model);

@@ -26,7 +26,13 @@
                 aria-valuemin="0" aria-valuemax="100"></div>
         </div>
 
+        @* Inga tider som matchar *@
+        <div id="noAvailableTimesMessage" class="alert alert-warning d-none">Det finns inga lediga tider för den valda
+            tjänsten och utövaren.</div>
 
+        @* Hoppa till nästa lediga tid-knapp *@
+        <button type="button" class="btn btn-info mb-3 d-none" id="goToNextAvailableBtn">Hoppa till första
+            lediga tid</button>
         <!-- FullCalendar container -->
         <div id="calendar"></div>
 
@@ -38,8 +44,7 @@
         <input type="hidden" name="bookingTime" id="selectedBookingTime" />
 
         <div class="form-group mt-4">
-            <a asp-action="SelectStylist" asp-route-serviceId="@ViewBag.ServiceId"
-                class="btn btn-secondary me-2">
+            <a asp-action="SelectStylist" asp-route-serviceId="@ViewBag.ServiceId" class="btn btn-secondary me-2">
                 Tillbaka
             </a>
             <button type="submit" class="btn btn-primary" id="confirmBookingBtn" disabled>Granska bokning</button>
@@ -48,14 +53,16 @@
 </div>
 
 @section Scripts {
-    <!-- Ladda FullCalendar -->
+    <!-- FullCalendar och moment -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
 
-
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            const calendarEl = document.getElementById('calendar')
+            const calendarEl = document.getElementById('calendar');
+            const btn = document.getElementById('goToNextAvailableBtn');
+            const messageBox = document.getElementById('noAvailableTimesMessage');
+
             const calendar = new FullCalendar.Calendar(calendarEl, {
                 initialView: 'dayGridMonth',
                 events: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.Events)),
@@ -63,7 +70,11 @@
                 eventBackgroundColor: '#395954',
                 eventDisplay: 'block',
                 displayEventEnd: true,
-                headerToolbar: { start: 'prev,next today', center: 'title', end: 'dayGridMonth,timeGridWeek' },
+                headerToolbar: {
+                    start: 'prev,next today',
+                    center: 'title',
+                    end: 'dayGridMonth,timeGridWeek'
+                },
                 locale: 'sv',
                 firstDay: 1,
                 eventClick: function (info) {
@@ -71,43 +82,71 @@
                     let stylistId = event.extendedProps.stylistId;
                     let stylistName = event.extendedProps.stylistName;
 
-                    @* Spara tid och stylistId till formuläret *@
-                        document.getElementById('selectedBookingTime').value = moment(event.start).toISOString();
+                    document.getElementById('selectedBookingTime').value = moment(event.start).toISOString();
                     document.getElementById('selectedStylistId').value = stylistId;
 
-                    @* Visa vald tid och stylist *@
-                        const selectedTime = moment(event.start).format('YYYY-MM-DD HH:mm');
+                    const selectedTime = moment(event.start).format('YYYY-MM-DD HH:mm');
                     document.getElementById('selectedTimeDisplay').textContent = "Vald tid: " + selectedTime;
                     document.getElementById('selectedStylistDisplay').textContent = "Stylist: " + stylistName;
 
-                    // Avmarkera tidigare event
                     calendar.getEvents().forEach(ev => {
                         ev.setExtendedProp('selected', false);
                         ev.setProp('backgroundColor', '#395954');
                         ev.setProp('borderColor', '#395954');
                     });
 
-                    // Markera valt event
                     event.setExtendedProp('selected', true);
                     info.el.classList.add('selected-event');
                     event.setProp('backgroundColor', '#eb6817');
                     event.setProp('borderColor', '#eb6817');
 
                     updateConfirmButtonState();
+                },
+                datesSet: function (info) {
+                    checkIfNextTimeIsVisible(info.start, info.end);
+                }
+            });
+
+            calendar.render();
+
+            btn.addEventListener('click', function () {
+                const date = this.dataset.gotodate;
+                if (date) calendar.gotoDate(date);
+            });
+
+            function checkIfNextTimeIsVisible(viewStart, viewEnd) {
+                const events = calendar.getEvents();
+
+                const sorted = events
+                    .filter(e => e.start > new Date())
+                    .sort((a, b) => a.start - b.start);
+
+                if (sorted.length === 0) {
+                    messageBox.classList.remove('d-none');
+                    btn.classList.add('d-none');
+                    return;
+                } else {
+                    messageBox.classList.add('d-none');
                 }
 
-            })
-            calendar.render()
-        })
+                const first = sorted[0];
 
-        function updateConfirmButtonState() {
-            const stylistId = document.getElementById("selectedStylistId").value;
-            const bookingTime = document.getElementById("selectedBookingTime").value;
-            const btn = document.getElementById("confirmBookingBtn");
+                if (first.start < viewStart || first.start > viewEnd) {
+                    btn.classList.remove('d-none');
+                } else {
+                    btn.classList.add('d-none');
+                }
 
-            if (stylistId && bookingTime) btn.disabled = false;
-            else btn.disabled = true;
-        }
+                btn.dataset.gotodate = first.start.toISOString();
+            }
 
+            function updateConfirmButtonState() {
+                const stylistId = document.getElementById("selectedStylistId").value;
+                const bookingTime = document.getElementById("selectedBookingTime").value;
+                const btn = document.getElementById("confirmBookingBtn");
+
+                btn.disabled = !(stylistId && bookingTime);
+            }
+        });
     </script>
 }

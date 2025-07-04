@@ -16,6 +16,7 @@
 
 .btn-primary:disabled {
   background-color: var(--bs-primary);
+  border: 2px solid var(--bs-primary);
   opacity: 60%;
   cursor: not-allowed;
 }
@@ -32,6 +33,14 @@
     color: #000;
 }
 
+.btn-info{
+  background-color: #FFAF68;
+  border: 2px solid #FFAF68;
+}
+.btn-info:hover{
+  background-color: #FBCBA1;
+  border: 2px solid #FFAF68;
+}
 
 .nav-pills .nav-link {
   color: var(--bs-secondary-color);
