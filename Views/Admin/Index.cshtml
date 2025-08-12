@@ -55,7 +55,7 @@
                         <td>@userRole.User.Firstname</td>
                         <td>@userRole.User.Lastname</td>
                         <td>@string.Join(", ", userRole.Roles)</td>
-                        
+
                         @* Redigera /radera *@
                         @* <td>
                             <a href="@Url.Action("Edit", "Admin", new { id = userRole.User.Id })">Redigera</a> |
@@ -70,5 +70,8 @@
     {
         <p>Inga användare hittades.</p>
     }
+
+    <a asp-action="Create" class="mb-2">Lägg till användare</a>
+
 
 </div>
