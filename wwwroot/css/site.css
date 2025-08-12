@@ -43,11 +43,12 @@
 }
 
 .nav-pills .nav-link {
-  color: var(--bs-secondary-color);
+  color: var(--bs-primary-color);
 }
 
 .nav-pills .nav-link.active {
-  background-color: var(--bs-secondary-color);
+  background-color: var(--bs-primary);
+  color: var(--bs-secondary-color);
 }
 
 .nav-pills .nav-link.active:hover {
