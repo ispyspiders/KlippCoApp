@@ -53,7 +53,9 @@
                             var roles = await UserManager.GetRolesAsync(user); // Hämta roller för användaren
                             @if (roles.Contains("Admin") || roles.Contains("Stylist"))
                             {
-                                <partial name="_AdministrationPartial" />
+                                <li>
+                                    <partial name="_AdministrationPartial" />
+                                </li>
                             }
                         }
                     </ul>

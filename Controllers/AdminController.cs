@@ -99,7 +99,7 @@ public class AdminController : Controller
                     ModelState.AddModelError(string.Empty, "Den valda rollen existerar inte.");
                     return View(model);
                 }
-                return RedirectToAction("Index"); // Om du vill redirigera till en lista med användare eller annan sida
+                return RedirectToAction("Index");
             }
 
             foreach (var error in result.Errors)

@@ -13,7 +13,7 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/KlippCoApp.styles.css" asp-append-version="true" />
-    
+
     <link rel="icon" type="image/x-icon" href="~/favicon.svg">
 
 
@@ -55,7 +55,9 @@
                             var roles = await UserManager.GetRolesAsync(user); // Hämta roller för användaren
                             @if (roles.Contains("Admin") || roles.Contains("Stylist"))
                             {
-                                <partial name="_AdministrationPartial" />
+                                <li>
+                                    <partial name="_AdministrationPartial" />
+                                </li>
                             }
                         }
                     </ul>
